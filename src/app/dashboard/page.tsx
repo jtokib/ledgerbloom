@@ -1,5 +1,4 @@
 
-'use client';
 import { Bar, BarChart, CartesianGrid, XAxis } from 'recharts';
 import { Button } from '@/components/ui/button';
 import {
@@ -17,6 +16,10 @@ import {
 } from '@/components/ui/chart';
 import type { ChartConfig } from '@/components/ui/chart';
 import { AddMovementDialog } from '@/components/movements/add-movement-dialog';
+import { getInventoryLevels } from '@/services/inventory';
+import { getLocations } from '@/services/locations';
+import { getMovements } from '@/services/movements';
+import { subDays } from 'date-fns';
 
 const chartData = [
   { month: 'January', desktop: 186, mobile: 80 },
@@ -38,12 +41,28 @@ const chartConfig = {
   },
 } satisfies ChartConfig;
 
-export default function Dashboard() {
+export default async function Dashboard() {
+  const inventoryLevels = await getInventoryLevels();
+  const locations = await getLocations();
+  const movements = await getMovements();
+
+  // This is a placeholder calculation. A real app would use product cost.
+  const totalInventoryValue = inventoryLevels.reduce((acc, level) => acc + (level.qty * 10), 0); 
+  const lowStockItems = inventoryLevels.filter(level => level.qty > 0 && level.qty < 10).length;
+  const criticallyLowStockItems = inventoryLevels.filter(level => level.qty <= 0).length;
+  
+  const oneDayAgo = subDays(new Date(), 1);
+  const recentMovements = movements.filter(m => m.occurredAt > oneDayAgo).length;
+  const activeLocations = locations.filter(l => l.active).length;
+  const warehouseCount = locations.filter(l => l.type === 'warehouse' && l.active).length;
+  const storeCount = locations.filter(l => l.type === 'store' && l.active).length;
+
+
   return (
     <div className="flex flex-col gap-4">
       <div className="flex items-center justify-between">
         <h1 className="text-2xl font-headline font-bold tracking-tight">
-          Welcome back, Mr. Bloom!
+          Welcome back!
         </h1>
         <AddMovementDialog>
             <Button>Create Movement</Button>
@@ -58,9 +77,9 @@ export default function Dashboard() {
             <span className="text-2xl">🌿</span>
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">$45,231.89</div>
+            <div className="text-2xl font-bold">${totalInventoryValue.toLocaleString('en-US', { style: 'currency', currency: 'USD' })}</div>
             <p className="text-xs text-muted-foreground">
-              +20.1% from last month
+              Based on placeholder values
             </p>
           </CardContent>
         </Card>
@@ -70,9 +89,9 @@ export default function Dashboard() {
             <span className="text-2xl">⚠️</span>
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">+12</div>
+            <div className="text-2xl font-bold">+{lowStockItems}</div>
             <p className="text-xs text-muted-foreground">
-              3 items critically low
+              {criticallyLowStockItems} items critically low
             </p>
           </CardContent>
         </Card>
@@ -82,7 +101,7 @@ export default function Dashboard() {
             <span className="text-2xl">🚚</span>
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">+573</div>
+            <div className="text-2xl font-bold">+{recentMovements}</div>
             <p className="text-xs text-muted-foreground">
               in the last 24 hours
             </p>
@@ -94,9 +113,9 @@ export default function Dashboard() {
             <span className="text-2xl">📍</span>
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">+5</div>
+            <div className="text-2xl font-bold">+{activeLocations}</div>
             <p className="text-xs text-muted-foreground">
-              2 warehouses, 3 stores
+              {warehouseCount} warehouses, {storeCount} stores
             </p>
           </CardContent>
         </Card>
