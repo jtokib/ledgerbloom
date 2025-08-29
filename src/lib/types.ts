@@ -4,6 +4,14 @@ export interface Organization {
   plan: 'free' | 'pro' | 'enterprise';
 }
 
+export interface User {
+  id: string; // Firebase Auth UID
+  email: string;
+  displayName?: string;
+  role: 'admin' | 'manager' | 'viewer';
+}
+
+
 export interface Member {
   id: string;
   uid: string;

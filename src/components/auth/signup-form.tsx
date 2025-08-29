@@ -10,6 +10,7 @@ import { Label } from '@/components/ui/label';
 import { useToast } from '@/hooks/use-toast';
 import { createUserWithEmailAndPassword, updateProfile } from 'firebase/auth';
 import { auth } from '@/lib/firebase';
+import { createUser } from '@/app/actions';
 
 export function SignUpForm() {
   const router = useRouter();
@@ -24,9 +25,16 @@ export function SignUpForm() {
     setIsLoading(true);
     try {
       const userCredential = await createUserWithEmailAndPassword(auth, email, password);
+      
       if (userCredential.user) {
         await updateProfile(userCredential.user, { displayName: name });
+        const dbUserResult = await createUser(userCredential.user.uid, name, email);
+
+        if (!dbUserResult.success) {
+            throw new Error(dbUserResult.error);
+        }
       }
+
       toast({
         title: 'Success!',
         description: 'Your account has been created.',

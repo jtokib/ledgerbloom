@@ -7,6 +7,7 @@ import { exportToBigQuery as exportToBigQueryFlow } from '@/ai/flows/export-to-b
 import type { ExportToBigQueryInput } from '@/ai/flows/export-to-bigquery';
 import { createExportLog } from '@/services/exports';
 import { createAuditLog } from '@/services/audit';
+import { createUser as createUserInDb } from '@/services/users';
 import { revalidatePath } from 'next/cache';
 import { getAuth } from 'firebase/auth';
 import { app, db } from '@/lib/firebase';
@@ -22,6 +23,21 @@ export async function generateSuggestions(input: InventoryOptimizationSuggestion
   } catch (error) {
     console.error(error);
     return { success: false, error: 'Failed to generate suggestions. Please try again.' };
+  }
+}
+
+export async function createUser(userId: string, name: string, email: string) {
+  try {
+    await createUserInDb({
+      id: userId,
+      displayName: name,
+      email: email,
+      role: 'viewer', // Default role for new users
+    });
+    return { success: true };
+  } catch (error) {
+    console.error(error);
+    return { success: false, error: 'Failed to create user record in database.' };
   }
 }
 
