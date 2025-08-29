@@ -4,20 +4,6 @@ Here is a list of features based on the project requirements.
 
 ---
 
-## Sprint 3: Advanced Features & Auditing
-
-**Goal:** Implement advanced features for data export and create a comprehensive audit trail for all system activities.
-
-- [x] **Data Export to BigQuery:** 
-    - [x] Provide real-time or scheduled export of inventory and transactional data.
-    - [x] Ensure audit trails of exports as a system function.
-- [x] **Audit Logs:** 
-    - [x] Record and retain a detailed audit trail for data access and modifications.
-    - [x] Track user actions, configuration changes, system events, and security-related events.
-    - [x] Ensure all actions are attributed to a user or a service account.
-
----
-
 ## Future Sprints (Backlog)
 
 *No items in the backlog currently.*
@@ -25,6 +11,15 @@ Here is a list of features based on the project requirements.
 ---
 
 ## Completed Tasks
+
+- **Sprint 3:**
+    - [x] **Data Export to BigQuery:** 
+        - [x] Provide real-time or scheduled export of inventory and transactional data.
+        - [x] Ensure audit trails of exports as a system function.
+    - [x] **Audit Logs:** 
+        - [x] Record and retain a detailed audit trail for data access and modifications.
+        - [x] Track user actions, configuration changes, system events, and security-related events.
+        - [x] Ensure all actions are attributed to a user or a service account.
 
 - **Sprint 2:**
     - [x] **Fix UI Spacing and Scrolling:**
