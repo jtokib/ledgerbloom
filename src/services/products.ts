@@ -16,19 +16,6 @@ export async function getProducts(): Promise<Product[]> {
   return productList;
 }
 
-export async function createProduct(productData: Omit<Product, 'id' | 'variants'>): Promise<Product> {
-    const productsCol = collection(db, 'products');
-    const newProductData = {
-        ...productData,
-        variants: [] // Variants will be managed separately
-    };
-    const docRef = await addDoc(productsCol, newProductData);
-    return {
-        ...newProductData,
-        id: docRef.id,
-    };
-}
-
 export async function updateProduct(productData: Omit<Product, 'variants'>): Promise<Product> {
     const productRef = doc(db, 'products', productData.id);
     const dataToUpdate = { ...productData };

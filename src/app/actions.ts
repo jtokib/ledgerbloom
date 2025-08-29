@@ -6,7 +6,6 @@ import type { InventoryOptimizationSuggestionsInput } from '@/ai/flows/inventory
 import { exportToBigQuery as exportToBigQueryFlow } from '@/ai/flows/export-to-bigquery';
 import type { ExportToBigQueryInput } from '@/ai/flows/export-to-bigquery';
 import {
-  createProduct as createProductService,
   updateProduct as updateProductService,
   deleteProduct as deleteProductService,
 } from '@/services/products';
@@ -20,8 +19,11 @@ import { createExportLog } from '@/services/exports';
 import { createAuditLog } from '@/services/audit';
 import { revalidatePath } from 'next/cache';
 import { getAuth } from 'firebase/auth';
-import { app } from '@/lib/firebase';
+import { app, db } from '@/lib/firebase';
 import { updateProfile } from 'firebase/auth';
+import { collection, addDoc } from 'firebase/firestore';
+import type { Product } from '@/lib/types';
+
 
 export async function generateSuggestions(input: InventoryOptimizationSuggestionsInput) {
   try {
@@ -35,20 +37,24 @@ export async function generateSuggestions(input: InventoryOptimizationSuggestion
 
 export async function createProduct(formData: FormData) {
   try {
-    const newProductData = {
+    const newProductData: Omit<Product, 'id'> = {
       displayName: formData.get('displayName') as string,
       baseUOM: formData.get('baseUOM') as string,
       active: formData.get('active') === 'on',
+      variants: [],
     };
-    const newProduct = await createProductService(newProductData);
+
+    const productsCol = collection(db, 'products');
+    const docRef = await addDoc(productsCol, newProductData);
+
 
     await createAuditLog({
         user: 'user@example.com', // In a real app, get this from session
         action: 'product.create',
         details: {
             entityType: 'product',
-            entityId: newProduct.id,
-            message: `Created new product: ${newProduct.displayName}`
+            entityId: docRef.id,
+            message: `Created new product: ${newProductData.displayName}`
         }
     });
 
