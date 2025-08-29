@@ -11,9 +11,9 @@ Here is a list of features based on the project requirements.
 - [x] **Audit Logs:** 
     - [x] Create a new page and components for viewing audit logs.
     - [x] Integrate `createAuditLog` into all write operations (CUD) for products, locations, orders, and movements.
-    - [x] Record and retain a detailed audit trail for data access and modifications.
+    - [x] Ensure all actions are attributed to a user or a service account.
+    - [ ] Record and retain a detailed audit trail for data access and modifications.
     - [ ] Track user actions, configuration changes, system events, and security-related events.
-    - [ ] Ensure all actions are attributed to a user or a service account.
 - [ ] **Data Export to BigQuery:** 
     - [ ] Provide real-time or scheduled export of inventory and transactional data.
     - [ ] Ensure audit trails of exports as a system function.
@@ -66,7 +66,5 @@ Here is a list of features based on the project requirements.
         - [x] Implemented AI insights page with Genkit flow.
     - [x] **Product & Location Management (C):**
         - [x] Added `Create` functionality for products and locations.
-    - [x] **Mock Data Services:**
+    - [xx] **Mock Data Services:**
         - [x] Established mock data services for `READ` operations.
-
-    

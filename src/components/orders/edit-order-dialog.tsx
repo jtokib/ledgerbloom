@@ -23,15 +23,21 @@ import { useToast } from '@/hooks/use-toast';
 import { updateOrder } from '@/app/actions';
 import { Pencil } from 'lucide-react';
 import type { Order } from '@/lib/types';
+import { useUser } from 'reactfire';
 
 export function EditOrderDialog({ order }: { order: Order }) {
   const [open, setOpen] = useState(false);
   const { toast } = useToast();
+  const { data: user } = useUser();
 
   async function handleSubmit(event: React.FormEvent<HTMLFormElement>) {
     event.preventDefault();
+    if (!user?.email) {
+        toast({ variant: 'destructive', title: 'Error', description: 'You must be logged in to update an order.' });
+        return;
+    }
     const formData = new FormData(event.currentTarget);
-    const result = await updateOrder(formData);
+    const result = await updateOrder(user.email, formData);
 
     if (result.success) {
       toast({ title: 'Success', description: 'Order updated successfully.' });

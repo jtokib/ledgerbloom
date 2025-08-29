@@ -88,7 +88,7 @@ export async function createUser(userId: string, name: string, email: string) {
   }
 }
 
-export async function createProduct(formData: FormData) {
+export async function createProduct(userEmail: string, formData: FormData) {
   try {
     const newProductData: Omit<Product, 'id' | 'variants' | 'imageUrl'> = {
       displayName: formData.get('displayName') as string,
@@ -110,7 +110,7 @@ export async function createProduct(formData: FormData) {
 
 
     await createAuditLog({
-        user: 'user@example.com', // In a real app, get this from session
+        user: userEmail,
         action: 'product.create',
         details: {
             entityType: 'product',
@@ -149,7 +149,7 @@ export async function updateUserProfile(formData: FormData) {
     }
 }
 
-export async function updateProduct(formData: FormData) {
+export async function updateProduct(userEmail: string, formData: FormData) {
     try {
       const product = {
         id: formData.get('id') as string,
@@ -177,7 +177,7 @@ export async function updateProduct(formData: FormData) {
       await updateDoc(productRef, dataToUpdate);
 
       await createAuditLog({
-        user: 'user@example.com', // In a real app, get this from session
+        user: userEmail,
         action: 'product.update',
         details: {
             entityType: 'product',
@@ -195,13 +195,13 @@ export async function updateProduct(formData: FormData) {
     }
   }
   
-  export async function deleteProduct(productId: string) {
+  export async function deleteProduct(userEmail: string, productId: string) {
     try {
       const productRef = doc(db, 'products', productId);
       await deleteDoc(productRef);
 
       await createAuditLog({
-        user: 'user@example.com', // In a real app, get this from session
+        user: userEmail,
         action: 'product.delete',
         details: {
             entityType: 'product',
@@ -220,7 +220,7 @@ export async function updateProduct(formData: FormData) {
   }
   
 
-export async function createLocation(formData: FormData) {
+export async function createLocation(userEmail: string, formData: FormData) {
     try {
       const newLocationData: Omit<Location, 'id'> = {
         name: formData.get('name') as string,
@@ -232,7 +232,7 @@ export async function createLocation(formData: FormData) {
       const docRef = await addDoc(locationsCol, newLocationData);
 
       await createAuditLog({
-        user: 'user@example.com', // In a real app, get this from session
+        user: userEmail,
         action: 'location.create',
         details: {
             entityType: 'location',
@@ -250,7 +250,7 @@ export async function createLocation(formData: FormData) {
     }
   }
 
-export async function updateLocation(formData: FormData) {
+export async function updateLocation(userEmail: string, formData: FormData) {
     try {
         const locationData = {
             id: formData.get('id') as string,
@@ -269,7 +269,7 @@ export async function updateLocation(formData: FormData) {
         await updateDoc(locationRef, dataToUpdate);
 
         await createAuditLog({
-            user: 'user@example.com', // In a real app, get this from session
+            user: userEmail,
             action: 'location.update',
             details: {
                 entityType: 'location',
@@ -288,13 +288,13 @@ export async function updateLocation(formData: FormData) {
     }
 }
 
-export async function deleteLocation(locationId: string) {
+export async function deleteLocation(userEmail: string, locationId: string) {
     try {
         const locationRef = doc(db, 'locations', locationId);
         await deleteDoc(locationRef);
 
         await createAuditLog({
-            user: 'user@example.com', // In a real app, get this from session
+            user: userEmail,
             action: 'location.delete',
             details: {
                 entityType: 'location',
@@ -312,7 +312,7 @@ export async function deleteLocation(locationId: string) {
     }
 }
 
-export async function createMovement(formData: FormData) {
+export async function createMovement(userEmail: string, formData: FormData) {
     try {
         const [sku, uom] = (formData.get('sku') as string).split('|');
         const movementData: Omit<InventoryMovement, 'id' | 'occurredAt'> = {
@@ -322,7 +322,7 @@ export async function createMovement(formData: FormData) {
             qty: parseInt(formData.get('qty') as string, 10),
             direction: formData.get('direction') as 'in' | 'out',
             cause: formData.get('cause') as 'purchase' | 'sale' | 'adjustment' | 'transfer' | 'production',
-            actor: 'user@example.com', // Get from session
+            actor: userEmail,
         };
         
         const newMovementData = {
@@ -339,7 +339,7 @@ export async function createMovement(formData: FormData) {
         }
 
         await createAuditLog({
-            user: 'user@example.com',
+            user: userEmail,
             action: `movement.create.${newMovement.cause}`,
             details: {
                 entityType: 'movement',
@@ -359,7 +359,7 @@ export async function createMovement(formData: FormData) {
     }
 }
 
-export async function createOrder(formData: FormData) {
+export async function createOrder(userEmail: string, formData: FormData) {
   try {
     const newOrderData = {
       customerName: formData.get('customerName') as string,
@@ -375,7 +375,7 @@ export async function createOrder(formData: FormData) {
     const docRef = await addDoc(ordersCol, newOrderData);
 
     await createAuditLog({
-        user: 'user@example.com',
+        user: userEmail,
         action: 'order.create',
         details: {
             entityType: 'order',
@@ -393,7 +393,7 @@ export async function createOrder(formData: FormData) {
   }
 }
 
-export async function updateOrder(formData: FormData) {
+export async function updateOrder(userEmail: string, formData: FormData) {
     try {
       const orderId = formData.get('id') as string;
       const status = formData.get('status') as Order['status'];
@@ -436,7 +436,7 @@ export async function updateOrder(formData: FormData) {
       }
 
       await createAuditLog({
-        user: 'user@example.com',
+        user: userEmail,
         action: 'order.update',
         details: {
             entityType: 'order',
@@ -456,19 +456,19 @@ export async function updateOrder(formData: FormData) {
     }
   }
 
-export async function exportToBigQuery(input: ExportToBigQueryInput) {
+export async function exportToBigQuery(userEmail: string, input: ExportToBigQueryInput) {
     try {
       const result = await exportToBigQueryFlow(input);
       
       await createExportLog({
           destination: 'BigQuery',
           status: result.success ? 'Completed' : 'Failed',
-          triggeredBy: 'user@example.com', // In a real app, get this from the session
+          triggeredBy: userEmail,
           message: result.message,
       });
 
       await createAuditLog({
-        user: 'user@example.com',
+        user: userEmail,
         action: 'export.run',
         details: {
             entityType: 'export',
@@ -484,7 +484,7 @@ export async function exportToBigQuery(input: ExportToBigQueryInput) {
       const message = error instanceof Error ? error.message : 'An unknown error occurred.';
       console.error('Export to BigQuery failed:', message);
        await createAuditLog({
-        user: 'user@example.com',
+        user: userEmail,
         action: 'export.run.failed',
         details: {
             entityType: 'export',
@@ -495,5 +495,3 @@ export async function exportToBigQuery(input: ExportToBigQueryInput) {
       return { success: false, message: `Export to BigQuery failed: ${message}` };
     }
 }
-
-    

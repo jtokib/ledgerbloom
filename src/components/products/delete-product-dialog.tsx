@@ -15,12 +15,18 @@ import {
 import { useToast } from '@/hooks/use-toast';
 import { deleteProduct } from '@/app/actions';
 import { Trash2 } from 'lucide-react';
+import { useUser } from 'reactfire';
 
 export function DeleteProductDialog({ productId }: { productId: string }) {
   const { toast } = useToast();
+  const { data: user } = useUser();
 
   async function handleDelete() {
-    const result = await deleteProduct(productId);
+    if (!user?.email) {
+        toast({ variant: 'destructive', title: 'Error', description: 'You must be logged in to delete a product.' });
+        return;
+    }
+    const result = await deleteProduct(user.email, productId);
 
     if (result.success) {
       toast({ title: 'Success', description: 'Product deleted successfully.' });

@@ -23,15 +23,21 @@ import {
 } from '@/components/ui/select';
 import { useToast } from '@/hooks/use-toast';
 import { createLocation } from '@/app/actions';
+import { useUser } from 'reactfire';
 
 export function AddLocationDialog() {
   const [open, setOpen] = useState(false);
   const { toast } = useToast();
+  const { data: user } = useUser();
 
   async function handleSubmit(event: React.FormEvent<HTMLFormElement>) {
     event.preventDefault();
+    if (!user?.email) {
+        toast({ variant: 'destructive', title: 'Error', description: 'You must be logged in to create a location.' });
+        return;
+    }
     const formData = new FormData(event.currentTarget);
-    const result = await createLocation(formData);
+    const result = await createLocation(user.email, formData);
 
     if (result.success) {
       toast({ title: 'Success', description: 'Location created successfully.' });

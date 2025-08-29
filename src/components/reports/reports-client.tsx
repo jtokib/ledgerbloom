@@ -1,3 +1,4 @@
+
 'use client';
 
 import { useState } from 'react';
@@ -10,17 +11,24 @@ import { exportToBigQuery } from '@/app/actions';
 import { getExportLogs } from '@/services/exports';
 import type { ExportLog } from '@/lib/types';
 import { Skeleton } from '@/components/ui/skeleton';
+import { useUser } from 'reactfire';
 
 export function ReportsClient({ initialLogs }: { initialLogs: ExportLog[] }) {
   const [isExporting, setIsExporting] = useState(false);
   const [logs, setLogs] = useState<ExportLog[]>(initialLogs);
-
+  const { data: user } = useUser();
   const { toast } = useToast();
 
   const handleExport = async () => {
     setIsExporting(true);
+
+    if (!user?.email) {
+        toast({ variant: 'destructive', title: 'Error', description: 'You must be logged in to export data.' });
+        setIsExporting(false);
+        return;
+    }
     
-    const result = await exportToBigQuery({
+    const result = await exportToBigQuery(user.email, {
         datasetId: "ledgerbloom_data",
         inventoryTableId: "inventory_levels",
         movementsTableId: "inventory_movements"

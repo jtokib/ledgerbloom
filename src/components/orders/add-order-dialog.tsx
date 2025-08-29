@@ -15,6 +15,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { useToast } from '@/hooks/use-toast';
 import { createOrder } from '@/app/actions';
+import { useUser } from 'reactfire';
 
 // NOTE: This is a simplified version. A real implementation would
 // involve adding line items, selecting products, etc.
@@ -22,11 +23,16 @@ import { createOrder } from '@/app/actions';
 export function AddOrderDialog() {
   const [open, setOpen] = useState(false);
   const { toast } = useToast();
+  const { data: user } = useUser();
 
   async function handleSubmit(event: React.FormEvent<HTMLFormElement>) {
     event.preventDefault();
+    if (!user?.email) {
+        toast({ variant: 'destructive', title: 'Error', description: 'You must be logged in to create an order.' });
+        return;
+    }
     const formData = new FormData(event.currentTarget);
-    const result = await createOrder(formData);
+    const result = await createOrder(user.email, formData);
 
     if (result.success) {
       toast({ title: 'Success', description: 'Order created successfully.' });

@@ -25,15 +25,21 @@ import { useToast } from '@/hooks/use-toast';
 import { updateLocation } from '@/app/actions';
 import { Pencil } from 'lucide-react';
 import type { Location } from '@/lib/types';
+import { useUser } from 'reactfire';
 
 export function EditLocationDialog({ location }: { location: Location }) {
   const [open, setOpen] = useState(false);
   const { toast } = useToast();
+  const { data: user } = useUser();
 
   async function handleSubmit(event: React.FormEvent<HTMLFormElement>) {
     event.preventDefault();
+     if (!user?.email) {
+        toast({ variant: 'destructive', title: 'Error', description: 'You must be logged in to update a location.' });
+        return;
+    }
     const formData = new FormData(event.currentTarget);
-    const result = await updateLocation(formData);
+    const result = await updateLocation(user.email, formData);
 
     if (result.success) {
       toast({ title: 'Success', description: 'Location updated successfully.' });

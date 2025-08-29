@@ -16,15 +16,21 @@ import { Label } from '@/components/ui/label';
 import { Switch } from '@/components/ui/switch';
 import { useToast } from '@/hooks/use-toast';
 import { createProduct } from '@/app/actions';
+import { useUser } from 'reactfire';
 
 export function AddProductDialog() {
   const [open, setOpen] = useState(false);
   const { toast } = useToast();
+  const { data: user } = useUser();
 
   async function handleSubmit(event: React.FormEvent<HTMLFormElement>) {
     event.preventDefault();
+    if (!user?.email) {
+        toast({ variant: 'destructive', title: 'Error', description: 'You must be logged in to create a product.' });
+        return;
+    }
     const formData = new FormData(event.currentTarget);
-    const result = await createProduct(formData);
+    const result = await createProduct(user.email, formData);
 
     if (result.success) {
       toast({ title: 'Success', description: 'Product created successfully.' });

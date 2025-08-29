@@ -27,6 +27,7 @@ import { getLocations } from '@/services/locations';
 import type { Product, Location } from '@/lib/types';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { Skeleton } from '../ui/skeleton';
+import { useUser } from 'reactfire';
 
 type AddMovementDialogProps = {
     children: React.ReactNode;
@@ -38,6 +39,7 @@ export function AddMovementDialog({ children }: AddMovementDialogProps) {
   const [products, setProducts] = useState<Product[]>([]);
   const [locations, setLocations] = useState<Location[]>([]);
   const [isLoading, setIsLoading] = useState(true);
+  const { data: user } = useUser();
 
   useEffect(() => {
     if (open) {
@@ -57,8 +59,12 @@ export function AddMovementDialog({ children }: AddMovementDialogProps) {
 
   async function handleSubmit(event: React.FormEvent<HTMLFormElement>) {
     event.preventDefault();
+    if (!user?.email) {
+        toast({ variant: 'destructive', title: 'Error', description: 'You must be logged in to create a movement.' });
+        return;
+    }
     const formData = new FormData(event.currentTarget);
-    const result = await createMovement(formData);
+    const result = await createMovement(user.email, formData);
 
     if (result.success) {
       toast({ title: 'Success', description: 'Movement created successfully.' });

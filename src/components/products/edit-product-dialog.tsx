@@ -19,15 +19,21 @@ import { useToast } from '@/hooks/use-toast';
 import { updateProduct } from '@/app/actions';
 import type { Product } from '@/lib/types';
 import { Pencil, Package } from 'lucide-react';
+import { useUser } from 'reactfire';
 
 export function EditProductDialog({ product }: { product: Product }) {
   const [open, setOpen] = useState(false);
   const { toast } = useToast();
+  const { data: user } = useUser();
 
   async function handleSubmit(event: React.FormEvent<HTMLFormElement>) {
     event.preventDefault();
+    if (!user?.email) {
+        toast({ variant: 'destructive', title: 'Error', description: 'You must be logged in to update a product.' });
+        return;
+    }
     const formData = new FormData(event.currentTarget);
-    const result = await updateProduct(formData);
+    const result = await updateProduct(user.email, formData);
 
     if (result.success) {
       toast({ title: 'Success', description: 'Product updated successfully.' });
