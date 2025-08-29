@@ -20,16 +20,15 @@ import {
   SidebarMenuItem,
   SidebarMenuButton,
   SidebarFooter,
+  useSidebar,
 } from '@/components/ui/sidebar';
 import { Logo } from '@/components/icons/logo';
-import { cn } from '@/lib/utils';
-import { UserNav } from '../auth/user-nav';
 
 const menuItems = [
   { href: '/dashboard', label: 'Dashboard', icon: Home },
   { href: '/dashboard/inventory', label: 'Inventory', icon: Boxes },
   { href: '/dashboard/movements', label: 'Movements', icon: History },
-  { href: ' /dashboard/audit-log', label: 'Audit Log', icon: FileText },
+  { href: '/dashboard/audit-log', label: 'Audit Log', icon: FileText },
   { href: '/dashboard/products', label: 'Products', icon: Package },
   { href: '/dashboard/locations', label: 'Locations', icon: MapPin },
   { href: '/dashboard/reports', label: 'Reports', icon: LineChart },
@@ -44,9 +43,10 @@ const settingsMenuItem = {
 
 export function SidebarNav() {
   const pathname = usePathname();
+  const { state } = useSidebar();
 
   return (
-    <Sidebar collapsible="icon" className="hidden sm:flex">
+    <Sidebar collapsible={state === 'collapsed' ? 'icon' : 'offcanvas'}>
       <SidebarHeader>
         <Link href="/dashboard" className="flex items-center gap-2">
           <Logo className="w-8 h-8 text-primary" />
