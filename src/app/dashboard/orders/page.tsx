@@ -94,7 +94,7 @@ export default function OrdersPage() {
               <TableRow key={order.id}>
                 <TableCell className="font-medium">{order.orderNumber}</TableCell>
                 <TableCell>{order.customerName}</TableCell>
-                <TableCell>{order.createdAt.toLocaleDateString()}</TableCell>
+                <TableCell>{new Date(order.createdAt).toLocaleDateString()}</TableCell>
                 <TableCell>
                   <Badge variant={getStatusVariant(order.status)} className={getStatusColor(order.status)}>
                     {order.status.charAt(0).toUpperCase() + order.status.slice(1)}

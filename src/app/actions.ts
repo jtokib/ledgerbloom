@@ -12,8 +12,10 @@ import { revalidatePath } from 'next/cache';
 import { getAuth } from 'firebase/auth';
 import { app, db } from '@/lib/firebase';
 import { updateProfile } from 'firebase/auth';
-import { collection, addDoc, doc, updateDoc, deleteDoc, Timestamp } from 'firebase/firestore';
+import { collection, addDoc, doc, updateDoc, deleteDoc, Timestamp, getDoc } from 'firebase/firestore';
 import type { Product, Location, InventoryMovement, Order } from '@/lib/types';
+import { getOrder } from '@/services/orders';
+import { getLocations } from '@/services/locations';
 
 
 export async function generateSuggestions(input: InventoryOptimizationSuggestionsInput) {
@@ -334,6 +336,40 @@ export async function updateOrder(formData: FormData) {
       const orderRef = doc(db, 'orders', orderId);
       await updateDoc(orderRef, { status });
 
+      // If order is shipped, create inventory movements
+      if (status === 'shipped') {
+        const order = await getOrder(orderId);
+        const locations = await getLocations();
+        const warehouse = locations.find(l => l.type === 'warehouse');
+        
+        if (order && warehouse) {
+            for (const item of order.items) {
+                const movementData: Omit<InventoryMovement, 'id' | 'occurredAt' | 'uom'> = {
+                    sku: item.sku,
+                    locationId: warehouse.id, // Assume shipping from the first warehouse
+                    qty: item.quantity,
+                    direction: 'out',
+                    cause: 'sale',
+                    actor: 'system',
+                };
+                
+                const movementsCol = collection(db, 'movements');
+                // We need to figure out the UOM for the product
+                // For now, let's assume 'each'
+                await addDoc(movementsCol, {...movementData, uom: 'each', occurredAt: new Date()});
+            }
+             await createAuditLog({
+                user: 'system',
+                action: 'inventory.adjust.sale',
+                details: {
+                    entityType: 'order',
+                    entityId: orderId,
+                    message: `Inventory adjusted for shipped order ${order.orderNumber}`
+                }
+            });
+        }
+      }
+
       await createAuditLog({
         user: 'user@example.com',
         action: 'order.update',
@@ -345,6 +381,8 @@ export async function updateOrder(formData: FormData) {
       });
 
       revalidatePath('/dashboard/orders');
+      revalidatePath('/dashboard/inventory');
+      revalidatePath('/dashboard/movements');
       revalidatePath('/dashboard/audit-log');
       return { success: true };
     } catch (error) {
