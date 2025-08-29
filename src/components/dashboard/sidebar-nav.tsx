@@ -54,36 +54,32 @@ export function SidebarNav() {
       <SidebarMenu className="flex-1">
         {menuItems.map((item) => (
           <SidebarMenuItem key={item.href}>
-            <Link href={item.href} legacyBehavior passHref>
-              <SidebarMenuButton
-                asChild
-                isActive={pathname === item.href}
-                tooltip={item.label}
-              >
-                <a>
-                  <item.icon />
-                  <span>{item.label}</span>
-                </a>
-              </SidebarMenuButton>
-            </Link>
+            <SidebarMenuButton
+              asChild
+              isActive={pathname === item.href}
+              tooltip={item.label}
+            >
+              <Link href={item.href}>
+                <item.icon />
+                <span>{item.label}</span>
+              </Link>
+            </SidebarMenuButton>
           </SidebarMenuItem>
         ))}
       </SidebarMenu>
       <SidebarFooter>
         <SidebarMenu>
           <SidebarMenuItem>
-            <Link href={settingsMenuItem.href} legacyBehavior passHref>
-              <SidebarMenuButton
-                asChild
-                isActive={pathname.startsWith(settingsMenuItem.href)}
-                tooltip={settingsMenuItem.label}
-              >
-                <a>
-                  <settingsMenuItem.icon />
-                  <span>{settingsMenuItem.label}</span>
-                </a>
-              </SidebarMenuButton>
-            </Link>
+            <SidebarMenuButton
+              asChild
+              isActive={pathname.startsWith(settingsMenuItem.href)}
+              tooltip={settingsMenuItem.label}
+            >
+              <Link href={settingsMenuItem.href}>
+                <settingsMenuItem.icon />
+                <span>{settingsMenuItem.label}</span>
+              </Link>
+            </SidebarMenuButton>
           </SidebarMenuItem>
         </SidebarMenu>
       </SidebarFooter>
