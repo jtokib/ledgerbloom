@@ -15,6 +15,7 @@ import {
   updateLocation as updateLocationService,
   deleteLocation as deleteLocationService,
 } from '@/services/locations';
+import { createMovement as createMovementService } from '@/services/movements';
 import { createExportLog } from '@/services/exports';
 import { createAuditLog } from '@/services/audit';
 import { revalidatePath } from 'next/cache';
@@ -194,6 +195,42 @@ export async function deleteLocation(locationId: string) {
     } catch (error) {
         console.error(error);
         return { success: false, error: 'Failed to delete location.' };
+    }
+}
+
+export async function createMovement(formData: FormData) {
+    try {
+        const [sku, uom] = (formData.get('sku') as string).split('|');
+        const newMovementData = {
+            sku,
+            uom,
+            locationId: formData.get('locationId') as string,
+            qty: parseInt(formData.get('qty') as string, 10),
+            direction: formData.get('direction') as 'in' | 'out',
+            cause: formData.get('cause') as 'purchase' | 'sale' | 'adjustment' | 'transfer' | 'production',
+            actor: 'user@example.com', // Get from session
+        };
+        // Add validation here in a real app
+        const newMovement = await createMovementService(newMovementData);
+        
+        await createAuditLog({
+            user: 'user@example.com',
+            action: `movement.create.${newMovement.cause}`,
+            details: {
+                entityType: 'movement',
+                entityId: newMovement.id,
+                message: `Created ${newMovement.direction} movement for ${newMovement.qty} ${newMovement.uom} of ${newMovement.sku}`
+            }
+        });
+
+        revalidatePath('/dashboard/movements');
+        revalidatePath('/dashboard/inventory');
+        revalidatePath('/dashboard/audit-log');
+        return { success: true };
+
+    } catch (error) {
+        console.error(error);
+        return { success: false, error: 'Failed to create movement.' };
     }
 }
 

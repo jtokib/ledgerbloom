@@ -1,3 +1,4 @@
+
 'use client';
 import { Bar, BarChart, CartesianGrid, XAxis } from 'recharts';
 import { Button } from '@/components/ui/button';
@@ -15,6 +16,7 @@ import {
   ChartTooltipContent,
 } from '@/components/ui/chart';
 import type { ChartConfig } from '@/components/ui/chart';
+import { AddMovementDialog } from '@/components/movements/add-movement-dialog';
 
 const chartData = [
   { month: 'January', desktop: 186, mobile: 80 },
@@ -43,7 +45,9 @@ export default function Dashboard() {
         <h1 className="text-2xl font-headline font-bold tracking-tight">
           Welcome back, Mr. Bloom!
         </h1>
-        <Button>Create Movement</Button>
+        <AddMovementDialog>
+            <Button>Create Movement</Button>
+        </AddMovementDialog>
       </div>
       <div className="grid gap-4 md:grid-cols-2 md:gap-8 lg:grid-cols-4">
         <Card>

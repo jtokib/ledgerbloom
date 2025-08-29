@@ -3,7 +3,7 @@
 
 import type { InventoryMovement } from '@/lib/types';
 import { db } from '@/lib/firebase';
-import { collection, getDocs, query, orderBy, Timestamp } from 'firebase/firestore';
+import { collection, getDocs, query, orderBy, Timestamp, addDoc } from 'firebase/firestore';
 
 
 /**
@@ -26,4 +26,22 @@ export async function getMovements(): Promise<InventoryMovement[]> {
   });
 
   return movementList;
+}
+
+/**
+ * A service to create an inventory movement in Firestore.
+ */
+export async function createMovement(movementData: Omit<InventoryMovement, 'id' | 'occurredAt'>): Promise<InventoryMovement> {
+    const newMovementData = {
+        ...movementData,
+        occurredAt: new Date(),
+    };
+
+    const movementsCol = collection(db, 'movements');
+    const docRef = await addDoc(movementsCol, newMovementData);
+
+    return {
+        ...newMovementData,
+        id: docRef.id,
+    };
 }
