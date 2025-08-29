@@ -18,7 +18,7 @@ import { DashboardChart } from '@/components/dashboard/dashboard-chart';
 export default async function Dashboard() {
   const inventoryLevels = await getInventoryLevels();
   const { locations } = await getLocations();
-  const movements = await getMovements();
+  const { movements } = await getMovements();
 
   // This is a placeholder calculation. A real app would use product cost.
   const totalInventoryValue = inventoryLevels.reduce((acc, level) => acc + (level.qty * 10), 0); 
