@@ -30,7 +30,7 @@ export default function SettingsPage() {
               <Label htmlFor="email">Email</Label>
               <Input id="email" type="email" defaultValue="user@example.com" />
             </div>
-            <Button>Save Changes</Button>
+            <Button disabled>Save Changes</Button>
           </CardContent>
         </Card>
       </TabsContent>
@@ -50,10 +50,10 @@ export default function SettingsPage() {
               <Label>Plan</Label>
               <div className="flex items-center gap-4">
                 <p className="font-semibold text-primary">Pro Plan</p>
-                <Button variant="outline">Upgrade Plan</Button>
+                <Button variant="outline" disabled>Upgrade Plan</Button>
               </div>
             </div>
-            <Button>Save Changes</Button>
+            <Button disabled>Save Changes</Button>
           </CardContent>
         </Card>
       </TabsContent>
@@ -65,7 +65,7 @@ export default function SettingsPage() {
               <CardTitle>Members</CardTitle>
               <CardDescription>Manage your organization's members and their roles.</CardDescription>
             </div>
-            <Button>Invite Member</Button>
+            <Button disabled>Invite Member</Button>
           </CardHeader>
           <CardContent>
             <Table>
