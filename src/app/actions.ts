@@ -5,11 +5,6 @@ import { getInventoryOptimizationSuggestions } from '@/ai/flows/inventory-optimi
 import type { InventoryOptimizationSuggestionsInput } from '@/ai/flows/inventory-optimization-suggestions';
 import { exportToBigQuery as exportToBigQueryFlow } from '@/ai/flows/export-to-bigquery';
 import type { ExportToBigQueryInput } from '@/ai/flows/export-to-bigquery';
-import {
-  createLocation as createLocationService,
-  updateLocation as updateLocationService,
-  deleteLocation as deleteLocationService,
-} from '@/services/locations';
 import { createMovement as createMovementService } from '@/services/movements';
 import { createExportLog } from '@/services/exports';
 import { createAuditLog } from '@/services/audit';
@@ -18,7 +13,7 @@ import { getAuth } from 'firebase/auth';
 import { app, db } from '@/lib/firebase';
 import { updateProfile } from 'firebase/auth';
 import { collection, addDoc, doc, updateDoc, deleteDoc } from 'firebase/firestore';
-import type { Product } from '@/lib/types';
+import type { Product, Location } from '@/lib/types';
 
 
 export async function generateSuggestions(input: InventoryOptimizationSuggestionsInput) {
@@ -144,21 +139,22 @@ export async function updateProduct(formData: FormData) {
 
 export async function createLocation(formData: FormData) {
     try {
-      const newLocationData = {
+      const newLocationData: Omit<Location, 'id'> = {
         name: formData.get('name') as string,
         address: formData.get('address') as string,
         type: formData.get('type') as 'warehouse' | 'store' | 'supplier',
         active: formData.get('active') === 'on',
       };
-      const newLocation = await createLocationService(newLocationData);
+      const locationsCol = collection(db, 'locations');
+      const docRef = await addDoc(locationsCol, newLocationData);
 
       await createAuditLog({
         user: 'user@example.com', // In a real app, get this from session
         action: 'location.create',
         details: {
             entityType: 'location',
-            entityId: newLocation.id,
-            message: `Created new location: ${newLocation.name}`
+            entityId: docRef.id,
+            message: `Created new location: ${newLocationData.name}`
         }
       });
 
@@ -173,22 +169,29 @@ export async function createLocation(formData: FormData) {
 
 export async function updateLocation(formData: FormData) {
     try {
-        const location = {
+        const locationData = {
             id: formData.get('id') as string,
             name: formData.get('name') as string,
             address: formData.get('address') as string,
             type: formData.get('type') as 'warehouse' | 'store' | 'supplier',
             active: formData.get('active') === 'on',
         };
-        await updateLocationService(location);
+        const locationRef = doc(db, 'locations', locationData.id);
+        const dataToUpdate: Omit<Location, 'id'> = {
+            name: locationData.name,
+            address: locationData.address,
+            type: locationData.type,
+            active: locationData.active,
+        };
+        await updateDoc(locationRef, dataToUpdate);
 
         await createAuditLog({
             user: 'user@example.com', // In a real app, get this from session
             action: 'location.update',
             details: {
                 entityType: 'location',
-                entityId: location.id,
-                message: `Updated location: ${location.name}`
+                entityId: locationData.id,
+                message: `Updated location: ${locationData.name}`
             }
         });
 
@@ -204,7 +207,8 @@ export async function updateLocation(formData: FormData) {
 
 export async function deleteLocation(locationId: string) {
     try {
-        await deleteLocationService(locationId);
+        const locationRef = doc(db, 'locations', locationId);
+        await deleteDoc(locationRef);
 
         await createAuditLog({
             user: 'user@example.com', // In a real app, get this from session
