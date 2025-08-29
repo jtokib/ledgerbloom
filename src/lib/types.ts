@@ -70,3 +70,15 @@ export interface ExportLog {
   };
   message?: string;
 }
+
+export interface AuditLog {
+  id: string;
+  user: string; // email or system
+  action: string; // e.g., 'product.create', 'location.update', 'export.run'
+  occurredAt: Date;
+  details: {
+    entityType: string; // 'product', 'location', 'export'
+    entityId: string;
+    message: string;
+  };
+}

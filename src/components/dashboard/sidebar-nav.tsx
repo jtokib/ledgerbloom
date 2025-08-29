@@ -11,6 +11,7 @@ import {
   Settings,
   History,
   LineChart,
+  FileText,
 } from 'lucide-react';
 import {
   Sidebar,
@@ -28,6 +29,7 @@ const menuItems = [
   { href: '/dashboard', label: 'Dashboard', icon: Home },
   { href: '/dashboard/inventory', label: 'Inventory', icon: Boxes },
   { href: '/dashboard/movements', label: 'Movements', icon: History },
+  { href: ' /dashboard/audit-log', label: 'Audit Log', icon: FileText },
   { href: '/dashboard/products', label: 'Products', icon: Package },
   { href: '/dashboard/locations', label: 'Locations', icon: MapPin },
   { href: '/dashboard/reports', label: 'Reports', icon: LineChart },
