@@ -128,7 +128,7 @@ export async function createProduct(userEmail: string, formData: FormData) {
   }
 }
 
-export async function updateUserProfile(formData: FormData) {
+export async function updateUserProfile(userEmail: string, formData: FormData) {
     try {
         const displayName = formData.get('name') as string;
         const auth = getAuth(app);
@@ -136,7 +136,19 @@ export async function updateUserProfile(formData: FormData) {
 
         if (currentUser) {
             await updateProfile(currentUser, { displayName });
+            
+            await createAuditLog({
+                user: userEmail,
+                action: 'user.update_profile',
+                details: {
+                    entityType: 'user',
+                    entityId: currentUser.uid,
+                    message: `User updated their display name to: ${displayName}`
+                }
+            });
+            
             revalidatePath('/dashboard/settings');
+            revalidatePath('/dashboard/audit-log');
             return { success: true, message: 'Profile updated successfully.' };
         } else {
             throw new Error('No user is signed in.');
@@ -495,3 +507,5 @@ export async function exportToBigQuery(userEmail: string, input: ExportToBigQuer
       return { success: false, message: `Export to BigQuery failed: ${message}` };
     }
 }
+
+    

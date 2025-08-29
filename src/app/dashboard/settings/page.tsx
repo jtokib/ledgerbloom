@@ -20,8 +20,12 @@ export default function SettingsPage() {
 
   const handleProfileSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault();
+    if (!user?.email) {
+      toast({ variant: "destructive", title: "Error", description: "You must be logged in to update your profile." });
+      return;
+    }
     const formData = new FormData(event.currentTarget);
-    const result = await updateUserProfile(formData);
+    const result = await updateUserProfile(user.email, formData);
 
     if (result.success) {
       toast({ title: "Success", description: result.message });
@@ -118,3 +122,5 @@ export default function SettingsPage() {
     </Tabs>
   )
 }
+
+    

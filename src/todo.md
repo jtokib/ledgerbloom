@@ -12,8 +12,8 @@ Here is a list of features based on the project requirements.
     - [x] Create a new page and components for viewing audit logs.
     - [x] Integrate `createAuditLog` into all write operations (CUD) for products, locations, orders, and movements.
     - [x] Ensure all actions are attributed to a user or a service account.
+    - [x] Track user actions, configuration changes, system events, and security-related events.
     - [ ] Record and retain a detailed audit trail for data access and modifications.
-    - [ ] Track user actions, configuration changes, system events, and security-related events.
 - [ ] **Data Export to BigQuery:** 
     - [ ] Provide real-time or scheduled export of inventory and transactional data.
     - [ ] Ensure audit trails of exports as a system function.
@@ -48,7 +48,7 @@ Here is a list of features based on the project requirements.
 - **Sprint 2:**
     - [x] **Fix UI Spacing and Scrolling:**
         - [x] Removed large empty space at the top of the page.
-        - [x] Enabled y-axis scrolling for tablet and desktop viewports.
+        - [x] Enable y-axis scrolling for tablet and desktop viewports.
     - [x] **Product & Location Management (U & D):**
         - [x] Implemented Update and Delete functionality for products.
         - [x] Implemented Update and Delete functionality for locations.
@@ -68,3 +68,5 @@ Here is a list of features based on the project requirements.
         - [x] Added `Create` functionality for products and locations.
     - [xx] **Mock Data Services:**
         - [x] Established mock data services for `READ` operations.
+
+    
