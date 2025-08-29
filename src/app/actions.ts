@@ -17,6 +17,18 @@ import { ref, uploadBytes, getDownloadURL } from 'firebase/storage';
 import type { Product, Location, InventoryMovement, Order } from '@/lib/types';
 import { getOrder } from '@/services/orders';
 import { getLocations } from '@/services/locations';
+import { getProducts } from '@/services/products';
+
+
+export async function getMoreProducts(lastVisibleId: string | null) {
+    try {
+        const { products, hasMore } = await getProducts({ lastVisibleId });
+        return { success: true, products, hasMore };
+    } catch (error) {
+        console.error(error);
+        return { success: false, error: 'Failed to fetch more products.' };
+    }
+}
 
 
 export async function generateSuggestions(input: InventoryOptimizationSuggestionsInput) {
@@ -451,3 +463,5 @@ export async function exportToBigQuery(input: ExportToBigQueryInput) {
       return { success: false, message: `Export to BigQuery failed: ${message}` };
     }
 }
+
+    

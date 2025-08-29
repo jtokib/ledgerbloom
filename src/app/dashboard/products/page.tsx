@@ -1,33 +1,55 @@
 
 'use client';
 import Image from 'next/image';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle, CardFooter } from "@/components/ui/card";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
 import { AddProductDialog } from "@/components/products/add-product-dialog";
 import { EditProductDialog } from "@/components/products/edit-product-dialog";
 import { DeleteProductDialog } from "@/components/products/delete-product-dialog";
+import { Button } from '@/components/ui/button';
 import { useRole } from "@/hooks/use-role";
-import { useEffect, useState } from "react";
+import { useEffect, useState, useTransition } from "react";
 import type { Product } from "@/lib/types";
 import { getProducts } from "@/services/products";
+import { getMoreProducts } from '@/app/actions';
 import { Skeleton } from "@/components/ui/skeleton";
 import { Package } from 'lucide-react';
+import { useToast } from '@/hooks/use-toast';
 
 
 export default function ProductsPage() {
   const { role, isLoading: isRoleLoading } = useRole();
   const [products, setProducts] = useState<Product[]>([]);
+  const [hasMore, setHasMore] = useState(true);
   const [isLoading, setIsLoading] = useState(true);
+  const [isPending, startTransition] = useTransition();
+  const { toast } = useToast();
 
   useEffect(() => {
     async function fetchData() {
-      const productsData = await getProducts();
-      setProducts(productsData);
+      const { products: initialProducts, hasMore: initialHasMore } = await getProducts({ limit: 10 });
+      setProducts(initialProducts);
+      setHasMore(initialHasMore);
       setIsLoading(false);
     }
     fetchData();
   }, []);
+
+  const loadMoreProducts = async () => {
+    if (!hasMore || isPending) return;
+
+    startTransition(async () => {
+        const lastVisibleId = products[products.length - 1]?.id;
+        const result = await getMoreProducts(lastVisibleId);
+        if (result.success) {
+            setProducts(prevProducts => [...prevProducts, ...result.products!]);
+            setHasMore(result.hasMore!);
+        } else {
+            toast({ variant: 'destructive', title: 'Error', description: result.error });
+        }
+    });
+  }
 
   const showActions = role === 'admin';
 
@@ -105,6 +127,15 @@ export default function ProductsPage() {
           </TableBody>
         </Table>
       </CardContent>
+      {hasMore && (
+        <CardFooter className="justify-center">
+            <Button onClick={loadMoreProducts} disabled={isPending}>
+                {isPending ? 'Loading...' : 'Load More'}
+            </Button>
+        </CardFooter>
+      )}
     </Card>
   );
 }
+
+    
