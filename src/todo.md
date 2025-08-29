@@ -14,9 +14,9 @@ Here is a list of features based on the project requirements.
 - [x] **Product & Location Management (U & D):**
     - [x] Implement Update and Delete functionality for products.
     - [x] Implement Update and Delete functionality for locations.
-- [ ] **Ledger-Based Inventory Tracking:** 
-    - [ ] Implement a ledger system for tracking all inventory movements.
-    - [ ] Records must include SKU, location, quantity, direction, cause, and timestamp.
+- [x] **Ledger-Based Inventory Tracking:** 
+    - [x] Implement a ledger system for tracking all inventory movements.
+    - [x] Records must include SKU, location, quantity, direction, cause, and timestamp.
 - [ ] **Inventory Level Calculation:** 
     - [ ] Automatically update materialized inventory levels based on inventory movements. 
     - [ ] Calculate current quantity, unit of measure and updated at fields.

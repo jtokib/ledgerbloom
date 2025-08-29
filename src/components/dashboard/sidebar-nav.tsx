@@ -9,8 +9,7 @@ import {
   MapPin,
   Package,
   Settings,
-  ShoppingCart,
-  Users,
+  History,
   LineChart,
 } from 'lucide-react';
 import {
@@ -28,6 +27,7 @@ import { UserNav } from '../auth/user-nav';
 const menuItems = [
   { href: '/dashboard', label: 'Dashboard', icon: Home },
   { href: '/dashboard/inventory', label: 'Inventory', icon: Boxes },
+  { href: '/dashboard/movements', label: 'Movements', icon: History },
   { href: '/dashboard/products', label: 'Products', icon: Package },
   { href: '/dashboard/locations', label: 'Locations', icon: MapPin },
   { href: '/dashboard/reports', label: 'Reports', icon: LineChart },
