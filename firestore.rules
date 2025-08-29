@@ -3,44 +3,36 @@ rules_version = '2';
 
 service cloud.firestore {
   match /databases/{database}/documents {
-    
+  
     // Deny all reads and writes by default.
-    // Specific rules below will grant access.
     match /{document=**} {
       allow read, write: if false;
     }
 
-    // Allow authenticated users to read and write their own user data.
-    // In the future, we'll restrict this to admins for role changes.
+    // Allow users to read their own user document
     match /users/{userId} {
-      allow read, write: if request.auth != null && request.auth.uid == userId;
+      allow read: if request.auth.uid == userId;
     }
 
-    // Allow authenticated users to read application data for now.
-    // Write access is denied and will be handled by server actions and specific role-based rules.
+    // Allow authenticated users to read product and location data
     match /products/{productId} {
       allow read: if request.auth != null;
-      allow write: if false; 
     }
-
     match /locations/{locationId} {
       allow read: if request.auth != null;
-      allow write: if false;
     }
-    
     match /movements/{movementId} {
         allow read: if request.auth != null;
-        allow write: if false;
     }
-
     match /audit_logs/{logId} {
-        allow read: if request.auth != null; // Admins only in the future
-        allow write: if false;
+        allow read: if request.auth != null;
     }
-
-    match /export_logs/{logId} {
-        allow read: if request.auth != null; // Admins only in the future
-        allow write: if false;
+     match /export_logs/{logId} {
+        allow read: if request.auth != null;
     }
+    
+    // Write access should be handled by secure server actions, not direct client writes.
+    // Allow writes only from a secure environment (e.g., Cloud Functions or server actions).
+    // For now, we will keep writes locked down until role-based logic is complete.
   }
 }

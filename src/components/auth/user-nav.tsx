@@ -21,11 +21,22 @@ import {
 import { useAuth } from 'reactfire';
 import { auth } from '@/lib/firebase';
 import { useUser } from 'reactfire';
+import { useEffect, useState } from 'react';
+import { getUser } from '@/services/users';
+import type { User as AppUser } from '@/lib/types';
+import { Badge } from '../ui/badge';
 
 
 export function UserNav() {
   const router = useRouter();
   const { data: user } = useUser();
+  const [appUser, setAppUser] = useState<AppUser | null>(null);
+
+  useEffect(() => {
+    if (user) {
+      getUser(user.uid).then(setAppUser);
+    }
+  }, [user]);
 
   const handleLogout = async () => {
     await auth.signOut();
@@ -50,6 +61,7 @@ export function UserNav() {
             <p className="text-xs leading-none text-muted-foreground">
               {user?.email ?? 'user@example.com'}
             </p>
+            {appUser && <Badge variant="outline" className="mt-2 w-fit">{appUser.role}</Badge>}
           </div>
         </DropdownMenuLabel>
         <DropdownMenuSeparator />
