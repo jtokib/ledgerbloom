@@ -5,15 +5,14 @@ import { getInventoryOptimizationSuggestions } from '@/ai/flows/inventory-optimi
 import type { InventoryOptimizationSuggestionsInput } from '@/ai/flows/inventory-optimization-suggestions';
 import { exportToBigQuery as exportToBigQueryFlow } from '@/ai/flows/export-to-bigquery';
 import type { ExportToBigQueryInput } from '@/ai/flows/export-to-bigquery';
-import { createMovement as createMovementService } from '@/services/movements';
 import { createExportLog } from '@/services/exports';
 import { createAuditLog } from '@/services/audit';
 import { revalidatePath } from 'next/cache';
 import { getAuth } from 'firebase/auth';
 import { app, db } from '@/lib/firebase';
 import { updateProfile } from 'firebase/auth';
-import { collection, addDoc, doc, updateDoc, deleteDoc } from 'firebase/firestore';
-import type { Product, Location } from '@/lib/types';
+import { collection, addDoc, doc, updateDoc, deleteDoc, Timestamp } from 'firebase/firestore';
+import type { Product, Location, InventoryMovement } from '@/lib/types';
 
 
 export async function generateSuggestions(input: InventoryOptimizationSuggestionsInput) {
@@ -232,7 +231,7 @@ export async function deleteLocation(locationId: string) {
 export async function createMovement(formData: FormData) {
     try {
         const [sku, uom] = (formData.get('sku') as string).split('|');
-        const newMovementData = {
+        const movementData: Omit<InventoryMovement, 'id' | 'occurredAt'> = {
             sku,
             uom,
             locationId: formData.get('locationId') as string,
@@ -241,8 +240,20 @@ export async function createMovement(formData: FormData) {
             cause: formData.get('cause') as 'purchase' | 'sale' | 'adjustment' | 'transfer' | 'production',
             actor: 'user@example.com', // Get from session
         };
-        const newMovement = await createMovementService(newMovementData);
         
+        const newMovementData = {
+            ...movementData,
+            occurredAt: new Date(),
+        };
+    
+        const movementsCol = collection(db, 'movements');
+        const docRef = await addDoc(movementsCol, newMovementData);
+
+        const newMovement = {
+            ...newMovementData,
+            id: docRef.id
+        }
+
         await createAuditLog({
             user: 'user@example.com',
             action: `movement.create.${newMovement.cause}`,
