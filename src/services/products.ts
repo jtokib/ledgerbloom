@@ -1,6 +1,7 @@
+
 import type { Product } from '@/lib/types';
 
-const mockProducts: Product[] = [
+let mockProducts: Product[] = [
   {
     id: 'prod_lavender',
     displayName: 'Lavender',
@@ -61,3 +62,14 @@ export async function getProducts(): Promise<Product[]> {
   await new Promise(resolve => setTimeout(resolve, 500));
   return mockProducts;
 }
+
+export async function createProduct(productData: Omit<Product, 'id' | 'variants'>): Promise<Product> {
+    await new Promise(resolve => setTimeout(resolve, 500));
+    const newProduct: Product = {
+      ...productData,
+      id: `prod_${productData.displayName.toLowerCase().replace(/\s/g, '_')}_${Date.now()}`,
+      variants: [],
+    };
+    mockProducts.push(newProduct);
+    return newProduct;
+  }

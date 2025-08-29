@@ -1,6 +1,7 @@
+
 import type { Location } from '@/lib/types';
 
-const mockLocations: Location[] = [
+let mockLocations: Location[] = [
   {
     id: 'main-warehouse',
     name: 'Main Warehouse',
@@ -40,3 +41,13 @@ export async function getLocations(): Promise<Location[]> {
   await new Promise(resolve => setTimeout(resolve, 500));
   return mockLocations;
 }
+
+export async function createLocation(locationData: Omit<Location, 'id'>): Promise<Location> {
+    await new Promise(resolve => setTimeout(resolve, 500));
+    const newLocation: Location = {
+      ...locationData,
+      id: `loc_${locationData.name.toLowerCase().replace(/\s/g, '_')}_${Date.now()}`,
+    };
+    mockLocations.push(newLocation);
+    return newLocation;
+  }

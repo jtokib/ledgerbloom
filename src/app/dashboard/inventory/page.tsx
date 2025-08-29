@@ -35,7 +35,7 @@ export default async function InventoryPage() {
           <CardTitle>Inventory Levels</CardTitle>
           <CardDescription>An overview of your current stock levels across all locations.</CardDescription>
         </div>
-        <Button>Add Manual Adjustment</Button>
+        <Button disabled>Add Manual Adjustment</Button>
       </CardHeader>
       <CardContent>
         <Table>

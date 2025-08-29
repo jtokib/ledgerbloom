@@ -3,6 +3,8 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
 import { getProducts } from "@/services/products";
+import { Pencil, Trash2 } from "lucide-react";
+import { AddProductDialog } from "@/components/products/add-product-dialog";
 
 export default async function ProductsPage() {
   const products = await getProducts();
@@ -14,7 +16,7 @@ export default async function ProductsPage() {
           <CardTitle>Products</CardTitle>
           <CardDescription>Manage your products and their variants.</CardDescription>
         </div>
-        <Button>Add Product</Button>
+        <AddProductDialog />
       </CardHeader>
       <CardContent>
         <Table>
@@ -24,6 +26,7 @@ export default async function ProductsPage() {
               <TableHead>Base UOM</TableHead>
               <TableHead>Variants</TableHead>
               <TableHead>Status</TableHead>
+              <TableHead className="w-[100px] text-right">Actions</TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
@@ -34,6 +37,14 @@ export default async function ProductsPage() {
                 <TableCell>{product.variants.length}</TableCell>
                 <TableCell>
                   {product.active ? <Badge>Active</Badge> : <Badge variant="secondary">Archived</Badge>}
+                </TableCell>
+                 <TableCell className="text-right">
+                    <Button variant="ghost" size="icon" disabled>
+                        <Pencil className="h-4 w-4" />
+                    </Button>
+                    <Button variant="ghost" size="icon" disabled>
+                        <Trash2 className="h-4 w-4" />
+                    </Button>
                 </TableCell>
               </TableRow>
             ))}
