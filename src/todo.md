@@ -15,7 +15,7 @@ Here is a list of features based on the project requirements.
     - [x] Update Firestore security rules to enforce role-based permissions.
 - [ ] **Order Management:**
     - [x] Create pages and components for viewing and managing orders.
-    - [ ] Implement server actions for creating and updating orders.
+    - [x] Implement server actions for creating and updating orders.
     - [ ] Create Cloud Functions to update inventory when an order status changes.
 - [ ] **Advanced Features:**
     - [ ] Implement product image uploads to Firebase Storage.

@@ -1,13 +1,30 @@
 
+'use client';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { getOrders } from "@/services/orders";
+import { useRole } from "@/hooks/use-role";
+import { useEffect, useState } from "react";
 import type { Order } from "@/lib/types";
+import { getOrders } from "@/services/orders";
+import { Skeleton } from "@/components/ui/skeleton";
+import { AddOrderDialog } from "@/components/orders/add-order-dialog";
+import { EditOrderDialog } from "@/components/orders/edit-order-dialog";
 
-export default async function OrdersPage() {
-  const orders = await getOrders();
+export default function OrdersPage() {
+  const { role, isLoading: isRoleLoading } = useRole();
+  const [orders, setOrders] = useState<Order[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
+
+  useEffect(() => {
+    async function fetchData() {
+      const ordersData = await getOrders();
+      setOrders(ordersData);
+      setIsLoading(false);
+    }
+    fetchData();
+  }, []);
 
   const getStatusVariant = (status: Order['status']) => {
     switch (status) {
@@ -31,6 +48,26 @@ export default async function OrdersPage() {
     }
   }
 
+  const canManageOrders = role === 'admin' || role === 'manager';
+
+  if (isLoading || isRoleLoading) {
+    return (
+      <Card>
+        <CardHeader>
+          <Skeleton className="h-8 w-1/4" />
+          <Skeleton className="h-4 w-1/2" />
+        </CardHeader>
+        <CardContent>
+          <div className="space-y-2">
+            <Skeleton className="h-12 w-full" />
+            <Skeleton className="h-12 w-full" />
+            <Skeleton className="h-12 w-full" />
+          </div>
+        </CardContent>
+      </Card>
+    )
+  }
+
   return (
     <Card>
       <CardHeader className="flex flex-row items-center justify-between">
@@ -38,7 +75,7 @@ export default async function OrdersPage() {
             <CardTitle>Orders</CardTitle>
             <CardDescription>Manage and track customer orders.</CardDescription>
         </div>
-        <Button disabled>Create Order</Button>
+        {canManageOrders && <AddOrderDialog />}
       </CardHeader>
       <CardContent>
         <Table>
@@ -49,6 +86,7 @@ export default async function OrdersPage() {
               <TableHead>Date</TableHead>
               <TableHead>Status</TableHead>
               <TableHead className="text-right">Total</TableHead>
+              {canManageOrders && <TableHead className="w-[100px] text-right">Actions</TableHead>}
             </TableRow>
           </TableHeader>
           <TableBody>
@@ -65,6 +103,11 @@ export default async function OrdersPage() {
                 <TableCell className="text-right">
                     {`$${order.totalValue.toFixed(2)}`}
                 </TableCell>
+                {canManageOrders && (
+                  <TableCell className="text-right">
+                    <EditOrderDialog order={order} />
+                  </TableCell>
+                )}
               </TableRow>
             ))}
           </TableBody>

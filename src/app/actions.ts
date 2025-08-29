@@ -13,7 +13,7 @@ import { getAuth } from 'firebase/auth';
 import { app, db } from '@/lib/firebase';
 import { updateProfile } from 'firebase/auth';
 import { collection, addDoc, doc, updateDoc, deleteDoc, Timestamp } from 'firebase/firestore';
-import type { Product, Location, InventoryMovement } from '@/lib/types';
+import type { Product, Location, InventoryMovement, Order } from '@/lib/types';
 
 
 export async function generateSuggestions(input: InventoryOptimizationSuggestionsInput) {
@@ -291,6 +291,67 @@ export async function createMovement(formData: FormData) {
         return { success: false, error: 'Failed to create movement.' };
     }
 }
+
+export async function createOrder(formData: FormData) {
+  try {
+    const newOrderData = {
+      customerName: formData.get('customerName') as string,
+      status: 'pending' as Order['status'],
+      createdAt: new Date(),
+      // In a real app, you'd process items from the form
+      items: [], 
+      totalValue: 0,
+      orderNumber: `ORD-${Date.now()}`
+    };
+
+    const ordersCol = collection(db, 'orders');
+    const docRef = await addDoc(ordersCol, newOrderData);
+
+    await createAuditLog({
+        user: 'user@example.com',
+        action: 'order.create',
+        details: {
+            entityType: 'order',
+            entityId: docRef.id,
+            message: `Created new order ${newOrderData.orderNumber} for ${newOrderData.customerName}`
+        }
+    });
+
+    revalidatePath('/dashboard/orders');
+    revalidatePath('/dashboard/audit-log');
+    return { success: true };
+  } catch (error) {
+    console.error(error);
+    return { success: false, error: 'Failed to create order.' };
+  }
+}
+
+export async function updateOrder(formData: FormData) {
+    try {
+      const orderId = formData.get('id') as string;
+      const status = formData.get('status') as Order['status'];
+      
+      const orderRef = doc(db, 'orders', orderId);
+      await updateDoc(orderRef, { status });
+
+      await createAuditLog({
+        user: 'user@example.com',
+        action: 'order.update',
+        details: {
+            entityType: 'order',
+            entityId: orderId,
+            message: `Updated order status to ${status}`
+        }
+      });
+
+      revalidatePath('/dashboard/orders');
+      revalidatePath('/dashboard/audit-log');
+      return { success: true };
+    } catch (error) {
+      console.error(error);
+      return { success: false, error: 'Failed to update order.' };
+    }
+  }
 
 export async function exportToBigQuery(input: ExportToBigQueryInput) {
     try {
