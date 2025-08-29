@@ -1,67 +1,44 @@
 
 'use server';
 import type { AuditLog } from '@/lib/types';
+import { db } from '@/lib/firebase';
+import { collection, getDocs, addDoc, query, orderBy, Timestamp } from 'firebase/firestore';
 
-const mockAuditLogs: AuditLog[] = [
-    {
-        id: 'audit_1',
-        user: 'user@example.com',
-        action: 'location.create',
-        occurredAt: new Date('2023-10-29T10:00:00Z'),
-        details: {
-            entityType: 'location',
-            entityId: 'westside-popup',
-            message: 'Created new location: Westside Pop-up'
-        }
-    },
-    {
-        id: 'audit_2',
-        user: 'user@example.com',
-        action: 'product.update',
-        occurredAt: new Date('2023-10-29T10:05:00Z'),
-        details: {
-            entityType: 'product',
-            entityId: 'prod_thyme',
-            message: 'Updated product: Thyme (active: false -> true)'
-        }
-    },
-    {
-        id: 'audit_3',
-        user: 'user@example.com',
-        action: 'export.run',
-        occurredAt: new Date('2023-10-29T10:10:00Z'),
-        details: {
-            entityType: 'export',
-            entityId: 'export_1',
-            message: 'Ran export to BigQuery, 12 records exported.'
-        }
-    },
-    {
-        id: 'audit_4',
-        user: 'system',
-        action: 'inventory.recalculate',
-        occurredAt: new Date('2023-10-29T10:15:00Z'),
-        details: {
-            entityType: 'system',
-            entityId: 'system-process-123',
-            message: 'Nightly inventory level recalculation completed.'
-        }
-    },
-];
 
+/**
+ * A service to fetch audit logs from Firestore.
+ */
 export async function getAuditLogs(): Promise<AuditLog[]> {
-    // Simulate network delay
-    await new Promise(resolve => setTimeout(resolve, 500));
-    return mockAuditLogs.sort((a,b) => b.occurredAt.getTime() - a.occurredAt.getTime());
+  const logsCol = collection(db, 'audit_logs');
+  const q = query(logsCol, orderBy('occurredAt', 'desc'));
+  const logsSnapshot = await getDocs(q);
+  
+  const logList = logsSnapshot.docs.map(doc => {
+    const data = doc.data();
+    return { 
+        id: doc.id, 
+        ...data,
+        occurredAt: (data.occurredAt as Timestamp).toDate(),
+    } as AuditLog
+  });
+
+  return logList;
 }
 
+/**
+ * A service to create an audit log in Firestore.
+ */
 export async function createAuditLog(logData: Omit<AuditLog, 'id' | 'occurredAt'>): Promise<AuditLog> {
-    await new Promise(resolve => setTimeout(resolve, 100)); // short delay
-    const newLog: AuditLog = {
+    const newLogData = {
         ...logData,
-        id: `audit_${Date.now()}`,
         occurredAt: new Date(),
     };
-    mockAuditLogs.push(newLog);
-    return newLog;
+
+    const logsCol = collection(db, 'audit_logs');
+    const docRef = await addDoc(logsCol, newLogData);
+    
+    return {
+        ...newLogData,
+        id: docRef.id,
+    };
 }
