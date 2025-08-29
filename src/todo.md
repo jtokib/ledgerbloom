@@ -1,4 +1,3 @@
-
 # LedgerBloom - Project TODO
 
 Here is a list of features based on the project requirements.
@@ -19,7 +18,7 @@ Here is a list of features based on the project requirements.
     - [x] Update inventory when an order status changes (implemented via server action).
 - [x] **Advanced Features:**
     - [x] Implement product image uploads to Firebase Storage.
-    - [ ] Add pagination to all data tables to improve performance.
+    - [x] Add pagination to all data tables to improve performance.
 
 ---
 
