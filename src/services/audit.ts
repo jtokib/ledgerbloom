@@ -1,3 +1,4 @@
+
 'use server';
 import type { AuditLog } from '@/lib/types';
 
@@ -52,4 +53,15 @@ export async function getAuditLogs(): Promise<AuditLog[]> {
     // Simulate network delay
     await new Promise(resolve => setTimeout(resolve, 500));
     return mockAuditLogs.sort((a,b) => b.occurredAt.getTime() - a.occurredAt.getTime());
+}
+
+export async function createAuditLog(logData: Omit<AuditLog, 'id' | 'occurredAt'>): Promise<AuditLog> {
+    await new Promise(resolve => setTimeout(resolve, 100)); // short delay
+    const newLog: AuditLog = {
+        ...logData,
+        id: `audit_${Date.now()}`,
+        occurredAt: new Date(),
+    };
+    mockAuditLogs.push(newLog);
+    return newLog;
 }

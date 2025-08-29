@@ -11,10 +11,10 @@ Here is a list of features based on the project requirements.
 - [x] **Data Export to BigQuery:** 
     - [x] Provide real-time or scheduled export of inventory and transactional data.
     - [x] Ensure audit trails of exports as a system function.
-- [ ] **Audit Logs:** 
-    - [ ] Record and retain a detailed audit trail for data access and modifications.
-    - [ ] Track user actions, configuration changes, system events, and security-related events.
-    - [ ] Ensure all actions are attributed to a user or a service account.
+- [x] **Audit Logs:** 
+    - [x] Record and retain a detailed audit trail for data access and modifications.
+    - [x] Track user actions, configuration changes, system events, and security-related events.
+    - [x] Ensure all actions are attributed to a user or a service account.
 
 ---
 

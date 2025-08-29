@@ -16,6 +16,7 @@ import {
   deleteLocation as deleteLocationService,
 } from '@/services/locations';
 import { createExportLog } from '@/services/exports';
+import { createAuditLog } from '@/services/audit';
 import { revalidatePath } from 'next/cache';
 
 export async function generateSuggestions(input: InventoryOptimizationSuggestionsInput) {
@@ -30,14 +31,26 @@ export async function generateSuggestions(input: InventoryOptimizationSuggestion
 
 export async function createProduct(formData: FormData) {
   try {
-    const newProduct = {
+    const newProductData = {
       displayName: formData.get('displayName') as string,
       baseUOM: formData.get('baseUOM') as string,
       active: formData.get('active') === 'on',
     };
     // In a real app, you'd do validation here with Zod
-    await createProductService(newProduct);
+    const newProduct = await createProductService(newProductData);
+
+    await createAuditLog({
+        user: 'user@example.com', // In a real app, get this from session
+        action: 'product.create',
+        details: {
+            entityType: 'product',
+            entityId: newProduct.id,
+            message: `Created new product: ${newProduct.displayName}`
+        }
+    });
+
     revalidatePath('/dashboard/products');
+    revalidatePath('/dashboard/audit-log');
     return { success: true };
   } catch (error) {
     console.error(error);
@@ -55,7 +68,19 @@ export async function updateProduct(formData: FormData) {
       };
       // In a real app, you'd do validation here with Zod
       await updateProductService(product);
+
+      await createAuditLog({
+        user: 'user@example.com', // In a real app, get this from session
+        action: 'product.update',
+        details: {
+            entityType: 'product',
+            entityId: product.id,
+            message: `Updated product: ${product.displayName}`
+        }
+      });
+
       revalidatePath('/dashboard/products');
+      revalidatePath('/dashboard/audit-log');
       return { success: true };
     } catch (error) {
       console.error(error);
@@ -66,7 +91,19 @@ export async function updateProduct(formData: FormData) {
   export async function deleteProduct(productId: string) {
     try {
       await deleteProductService(productId);
+
+      await createAuditLog({
+        user: 'user@example.com', // In a real app, get this from session
+        action: 'product.delete',
+        details: {
+            entityType: 'product',
+            entityId: productId,
+            message: `Deleted product with ID: ${productId}`
+        }
+      });
+
       revalidatePath('/dashboard/products');
+      revalidatePath('/dashboard/audit-log');
       return { success: true };
     } catch (error) {
       console.error(error);
@@ -77,15 +114,27 @@ export async function updateProduct(formData: FormData) {
 
 export async function createLocation(formData: FormData) {
     try {
-      const newLocation = {
+      const newLocationData = {
         name: formData.get('name') as string,
         address: formData.get('address') as string,
         type: formData.get('type') as 'warehouse' | 'store' | 'supplier',
         active: formData.get('active') === 'on',
       };
       // In a real app, you'd do validation here with Zod
-      await createLocationService(newLocation);
+      const newLocation = await createLocationService(newLocationData);
+
+      await createAuditLog({
+        user: 'user@example.com', // In a real app, get this from session
+        action: 'location.create',
+        details: {
+            entityType: 'location',
+            entityId: newLocation.id,
+            message: `Created new location: ${newLocation.name}`
+        }
+      });
+
       revalidatePath('/dashboard/locations');
+      revalidatePath('/dashboard/audit-log');
       return { success: true };
     } catch (error) {
       console.error(error);
@@ -104,7 +153,20 @@ export async function updateLocation(formData: FormData) {
         };
         // In a real app, you'd do validation here with Zod
         await updateLocationService(location);
+
+        await createAuditLog({
+            user: 'user@example.com', // In a real app, get this from session
+            action: 'location.update',
+            details: {
+                entityType: 'location',
+                entityId: location.id,
+                message: `Updated location: ${location.name}`
+            }
+        });
+
+
         revalidatePath('/dashboard/locations');
+        revalidatePath('/dashboard/audit-log');
         return { success: true };
     } catch (error) {
         console.error(error);
@@ -115,7 +177,19 @@ export async function updateLocation(formData: FormData) {
 export async function deleteLocation(locationId: string) {
     try {
         await deleteLocationService(locationId);
+
+        await createAuditLog({
+            user: 'user@example.com', // In a real app, get this from session
+            action: 'location.delete',
+            details: {
+                entityType: 'location',
+                entityId: locationId,
+                message: `Deleted location with ID: ${locationId}`
+            }
+        });
+
         revalidatePath('/dashboard/locations');
+        revalidatePath('/dashboard/audit-log');
         return { success: true };
     } catch (error) {
         console.error(error);
@@ -135,11 +209,32 @@ export async function exportToBigQuery(input: ExportToBigQueryInput) {
           message: result.message,
       });
 
+      await createAuditLog({
+        user: 'user@example.com',
+        action: 'export.run',
+        details: {
+            entityType: 'export',
+            entityId: `bq_export_${Date.now()}`,
+            message: result.message
+        }
+      });
+
       revalidatePath('/dashboard/reports');
+      revalidatePath('/dashboard/audit-log');
       return { success: result.success, message: result.message };
     } catch (error) {
       const message = error instanceof Error ? error.message : 'An unknown error occurred.';
       console.error('Export to BigQuery failed:', message);
+      // Also log the failure to the audit log
+       await createAuditLog({
+        user: 'user@example.com',
+        action: 'export.run.failed',
+        details: {
+            entityType: 'export',
+            entityId: `bq_export_${Date.now()}`,
+            message
+        }
+      });
       return { success: false, message: `Export to BigQuery failed: ${message}` };
     }
 }
