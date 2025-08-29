@@ -1,3 +1,6 @@
+
+'use client';
+
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -5,8 +8,29 @@ import { Label } from "@/components/ui/label";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Badge } from "@/components/ui/badge";
+import { useUser } from "reactfire";
+import { updateUserProfile } from "@/app/actions";
+import { useToast } from "@/hooks/use-toast";
+import { useRef } from "react";
 
 export default function SettingsPage() {
+  const { data: user } = useUser();
+  const { toast } = useToast();
+  const formRef = useRef<HTMLFormElement>(null);
+
+  const handleProfileSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
+    event.preventDefault();
+    const formData = new FormData(event.currentTarget);
+    const result = await updateUserProfile(formData);
+
+    if (result.success) {
+      toast({ title: "Success", description: result.message });
+    } else {
+      toast({ variant: "destructive", title: "Error", description: result.error });
+    }
+  };
+
+
   return (
     <Tabs defaultValue="members" className="grid gap-4">
       <TabsList className="grid w-full grid-cols-3">
@@ -17,21 +41,23 @@ export default function SettingsPage() {
       
       <TabsContent value="profile">
         <Card>
-          <CardHeader>
-            <CardTitle>My Profile</CardTitle>
-            <CardDescription>Update your personal information.</CardDescription>
-          </CardHeader>
-          <CardContent className="space-y-4">
-            <div className="space-y-2">
-              <Label htmlFor="name">Full Name</Label>
-              <Input id="name" defaultValue="Bloom User" />
-            </div>
-            <div className="space-y-2">
-              <Label htmlFor="email">Email</Label>
-              <Input id="email" type="email" defaultValue="user@example.com" />
-            </div>
-            <Button disabled>Save Changes</Button>
-          </CardContent>
+          <form ref={formRef} onSubmit={handleProfileSubmit}>
+            <CardHeader>
+              <CardTitle>My Profile</CardTitle>
+              <CardDescription>Update your personal information.</CardDescription>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              <div className="space-y-2">
+                <Label htmlFor="name">Full Name</Label>
+                <Input id="name" name="name" defaultValue={user?.displayName ?? ''} />
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="email">Email</Label>
+                <Input id="email" type="email" defaultValue={user?.email ?? ''} disabled />
+              </div>
+              <Button type="submit">Save Changes</Button>
+            </CardContent>
+          </form>
         </Card>
       </TabsContent>
 
@@ -79,28 +105,10 @@ export default function SettingsPage() {
               </TableHeader>
               <TableBody>
                 <TableRow>
-                  <TableCell className="font-medium">Bloom User</TableCell>
-                  <TableCell>user@example.com</TableCell>
+                  <TableCell className="font-medium">{user?.displayName ?? 'Bloom User'}</TableCell>
+                  <TableCell>{user?.email}</TableCell>
                   <TableCell><Badge variant="outline">Admin</Badge></TableCell>
                   <TableCell><Badge>Active</Badge></TableCell>
-                </TableRow>
-                <TableRow>
-                  <TableCell className="font-medium">Jane Doe</TableCell>
-                  <TableCell>jane@example.com</TableCell>
-                  <TableCell><Badge variant="secondary">Manager</Badge></TableCell>
-                  <TableCell><Badge>Active</Badge></TableCell>
-                </TableRow>
-                <TableRow>
-                  <TableCell className="font-medium">John Smith</TableCell>
-                  <TableCell>john@example.com</TableCell>
-                  <TableCell><Badge variant="secondary">Viewer</Badge></TableCell>
-                  <TableCell><Badge>Active</Badge></TableCell>
-                </TableRow>
-                 <TableRow>
-                  <TableCell className="font-medium">-</TableCell>
-                  <TableCell>new.user@example.com</TableCell>
-                  <TableCell><Badge variant="secondary">Viewer</Badge></TableCell>
-                  <TableCell><Badge variant="destructive">Pending</Badge></TableCell>
                 </TableRow>
               </TableBody>
             </Table>

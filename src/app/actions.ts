@@ -19,6 +19,9 @@ import { createMovement as createMovementService } from '@/services/movements';
 import { createExportLog } from '@/services/exports';
 import { createAuditLog } from '@/services/audit';
 import { revalidatePath } from 'next/cache';
+import { getAuth } from 'firebase/auth';
+import { app } from '@/lib/firebase';
+import { updateProfile } from 'firebase/auth';
 
 export async function generateSuggestions(input: InventoryOptimizationSuggestionsInput) {
   try {
@@ -37,7 +40,6 @@ export async function createProduct(formData: FormData) {
       baseUOM: formData.get('baseUOM') as string,
       active: formData.get('active') === 'on',
     };
-    // In a real app, you'd do validation here with Zod
     const newProduct = await createProductService(newProductData);
 
     await createAuditLog({
@@ -59,6 +61,26 @@ export async function createProduct(formData: FormData) {
   }
 }
 
+export async function updateUserProfile(formData: FormData) {
+    try {
+        const displayName = formData.get('name') as string;
+        const auth = getAuth(app);
+        const currentUser = auth.currentUser;
+
+        if (currentUser) {
+            await updateProfile(currentUser, { displayName });
+            revalidatePath('/dashboard/settings');
+            return { success: true, message: 'Profile updated successfully.' };
+        } else {
+            throw new Error('No user is signed in.');
+        }
+
+    } catch (error) {
+        console.error(error);
+        return { success: false, error: 'Failed to update profile.' };
+    }
+}
+
 export async function updateProduct(formData: FormData) {
     try {
       const product = {
@@ -67,7 +89,6 @@ export async function updateProduct(formData: FormData) {
         baseUOM: formData.get('baseUOM') as string,
         active: formData.get('active') === 'on',
       };
-      // In a real app, you'd do validation here with Zod
       await updateProductService(product);
 
       await createAuditLog({
@@ -121,7 +142,6 @@ export async function createLocation(formData: FormData) {
         type: formData.get('type') as 'warehouse' | 'store' | 'supplier',
         active: formData.get('active') === 'on',
       };
-      // In a real app, you'd do validation here with Zod
       const newLocation = await createLocationService(newLocationData);
 
       await createAuditLog({
@@ -152,7 +172,6 @@ export async function updateLocation(formData: FormData) {
             type: formData.get('type') as 'warehouse' | 'store' | 'supplier',
             active: formData.get('active') === 'on',
         };
-        // In a real app, you'd do validation here with Zod
         await updateLocationService(location);
 
         await createAuditLog({
@@ -210,7 +229,6 @@ export async function createMovement(formData: FormData) {
             cause: formData.get('cause') as 'purchase' | 'sale' | 'adjustment' | 'transfer' | 'production',
             actor: 'user@example.com', // Get from session
         };
-        // Add validation here in a real app
         const newMovement = await createMovementService(newMovementData);
         
         await createAuditLog({
@@ -238,7 +256,6 @@ export async function exportToBigQuery(input: ExportToBigQueryInput) {
     try {
       const result = await exportToBigQueryFlow(input);
       
-      // Create an audit log entry
       await createExportLog({
           destination: 'BigQuery',
           status: result.success ? 'Completed' : 'Failed',
@@ -262,7 +279,6 @@ export async function exportToBigQuery(input: ExportToBigQueryInput) {
     } catch (error) {
       const message = error instanceof Error ? error.message : 'An unknown error occurred.';
       console.error('Export to BigQuery failed:', message);
-      // Also log the failure to the audit log
        await createAuditLog({
         user: 'user@example.com',
         action: 'export.run.failed',
