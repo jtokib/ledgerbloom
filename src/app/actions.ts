@@ -3,6 +3,8 @@
 
 import { getInventoryOptimizationSuggestions } from '@/ai/flows/inventory-optimization-suggestions';
 import type { InventoryOptimizationSuggestionsInput } from '@/ai/flows/inventory-optimization-suggestions';
+import { exportToBigQuery as exportToBigQueryFlow } from '@/ai/flows/export-to-bigquery';
+import type { ExportToBigQueryInput } from '@/ai/flows/export-to-bigquery';
 import {
   createProduct as createProductService,
   updateProduct as updateProductService,
@@ -117,5 +119,18 @@ export async function deleteLocation(locationId: string) {
     } catch (error) {
         console.error(error);
         return { success: false, error: 'Failed to delete location.' };
+    }
+}
+
+export async function exportToBigQuery(input: ExportToBigQueryInput) {
+    try {
+      const result = await exportToBigQueryFlow(input);
+      // In a real app, you would revalidate a path to show the new export log
+      // revalidatePath('/dashboard/reports');
+      return { success: result.success, message: result.message };
+    } catch (error) {
+      const message = error instanceof Error ? error.message : 'An unknown error occurred.';
+      console.error('Export to BigQuery failed:', message);
+      return { success: false, message: `Export to BigQuery failed: ${message}` };
     }
 }
