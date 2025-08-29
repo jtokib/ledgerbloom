@@ -8,8 +8,8 @@ import { Badge } from "@/components/ui/badge";
 
 export default function SettingsPage() {
   return (
-    <Tabs defaultValue="members">
-      <TabsList className="grid w-full grid-cols-3 mb-4">
+    <Tabs defaultValue="members" className="grid gap-4">
+      <TabsList className="grid w-full grid-cols-3">
         <TabsTrigger value="profile">My Profile</TabsTrigger>
         <TabsTrigger value="organization">Organization</TabsTrigger>
         <TabsTrigger value="members">Members</TabsTrigger>
