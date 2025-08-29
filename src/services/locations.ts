@@ -50,4 +50,27 @@ export async function createLocation(locationData: Omit<Location, 'id'>): Promis
     };
     mockLocations.push(newLocation);
     return newLocation;
-  }
+}
+
+export async function updateLocation(locationData: Omit<Location, 'variants'>): Promise<Location> {
+    await new Promise(resolve => setTimeout(resolve, 500));
+    const index = mockLocations.findIndex(l => l.id === locationData.id);
+    if (index === -1) {
+        throw new Error('Location not found');
+    }
+    const updatedLocation = {
+        ...mockLocations[index],
+        ...locationData,
+    };
+    mockLocations[index] = updatedLocation;
+    return updatedLocation;
+}
+
+export async function deleteLocation(locationId: string): Promise<void> {
+    await new Promise(resolve => setTimeout(resolve, 500));
+    const index = mockLocations.findIndex(l => l.id === locationId);
+    if (index === -1) {
+        throw new Error('Location not found');
+    }
+    mockLocations.splice(index, 1);
+}

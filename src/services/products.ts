@@ -72,4 +72,27 @@ export async function createProduct(productData: Omit<Product, 'id' | 'variants'
     };
     mockProducts.push(newProduct);
     return newProduct;
-  }
+}
+
+export async function updateProduct(productData: Omit<Product, 'variants'>): Promise<Product> {
+    await new Promise(resolve => setTimeout(resolve, 500));
+    const index = mockProducts.findIndex(p => p.id === productData.id);
+    if (index === -1) {
+        throw new Error('Product not found');
+    }
+    const updatedProduct = {
+        ...mockProducts[index],
+        ...productData,
+    };
+    mockProducts[index] = updatedProduct;
+    return updatedProduct;
+}
+
+export async function deleteProduct(productId: string): Promise<void> {
+    await new Promise(resolve => setTimeout(resolve, 500));
+    const index = mockProducts.findIndex(p => p.id === productId);
+    if (index === -1) {
+        throw new Error('Product not found');
+    }
+    mockProducts.splice(index, 1);
+}

@@ -1,10 +1,10 @@
-import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
 import { getLocations } from "@/services/locations";
-import { Pencil, Trash2 } from "lucide-react";
 import { AddLocationDialog } from "@/components/locations/add-location-dialog";
+import { EditLocationDialog } from "@/components/locations/edit-location-dialog";
+import { DeleteLocationDialog } from "@/components/locations/delete-location-dialog";
 
 export default async function LocationsPage() {
   const locations = await getLocations();
@@ -39,12 +39,8 @@ export default async function LocationsPage() {
                   {location.active ? <Badge>Active</Badge> : <Badge variant="secondary">Inactive</Badge>}
                 </TableCell>
                 <TableCell className="text-right">
-                    <Button variant="ghost" size="icon" disabled>
-                        <Pencil className="h-4 w-4" />
-                    </Button>
-                    <Button variant="ghost" size="icon" disabled>
-                        <Trash2 className="h-4 w-4" />
-                    </Button>
+                    <EditLocationDialog location={location} />
+                    <DeleteLocationDialog locationId={location.id} />
                 </TableCell>
               </TableRow>
             ))}
