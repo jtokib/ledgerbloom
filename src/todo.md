@@ -9,9 +9,9 @@ Here is a list of features based on the project requirements.
 **Goal:** Implement role-based access control and build out the remaining core application functionality.
 
 - [ ] **Role-Based Access Control (RBAC):**
-    - [ ] Create a `users` collection in Firestore to store user roles.
-    - [ ] Implement logic to check user roles for actions.
-    - [ ] Update Firestore security rules to enforce role-based permissions.
+    - [x] Create a `users` collection in Firestore to store user roles.
+    - [x] Implement logic to check user roles for actions (in progress).
+    - [x] Update Firestore security rules to enforce role-based permissions (in progress).
 - [ ] **Order Management:**
     - [ ] Create pages and components for viewing and managing orders.
     - [ ] Implement server actions for creating and updating orders.
