@@ -47,8 +47,8 @@ export function AddMovementDialog({ children }: AddMovementDialogProps) {
             getProducts(),
             getLocations(),
         ]);
-        setProducts(productsData);
-        setLocations(locationsData);
+        setProducts(productsData.products);
+        setLocations(locationsData.locations);
         setIsLoading(false);
       }
       fetchData();

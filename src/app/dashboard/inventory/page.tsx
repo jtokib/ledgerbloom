@@ -1,3 +1,4 @@
+
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
@@ -9,8 +10,8 @@ import { Button } from "@/components/ui/button";
 
 export default async function InventoryPage() {
   const inventoryLevels = await getInventoryLevels();
-  const products = await getProducts();
-  const locations = await getLocations();
+  const { products } = await getProducts();
+  const { locations } = await getLocations();
 
   const getProduct = (sku: string) => {
     return products.find(p => p.variants.some(v => v.sku === sku));

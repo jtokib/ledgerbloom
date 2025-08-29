@@ -1,3 +1,4 @@
+
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
@@ -8,8 +9,8 @@ import { ArrowDownLeft, ArrowUpRight } from "lucide-react";
 
 export default async function MovementsPage() {
   const movements = await getMovements();
-  const products = await getProducts();
-  const locations = await getLocations();
+  const { products } = await getProducts();
+  const { locations } = await getLocations();
 
   const getProductDisplayName = (sku: string) => {
     for (const product of products) {

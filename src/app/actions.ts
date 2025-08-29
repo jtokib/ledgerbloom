@@ -16,17 +16,27 @@ import { collection, addDoc, doc, updateDoc, deleteDoc, Timestamp, getDoc } from
 import { ref, uploadBytes, getDownloadURL } from 'firebase/storage';
 import type { Product, Location, InventoryMovement, Order } from '@/lib/types';
 import { getOrder } from '@/services/orders';
-import { getLocations } from '@/services/locations';
-import { getProducts } from '@/services/products';
+import { getLocations as getLocationsFromDb } from '@/services/locations';
+import { getProducts as getProductsFromDb } from '@/services/products';
 
 
 export async function getMoreProducts(lastVisibleId: string | null) {
     try {
-        const { products, hasMore } = await getProducts({ lastVisibleId });
+        const { products, hasMore } = await getProductsFromDb({ lastVisibleId });
         return { success: true, products, hasMore };
     } catch (error) {
         console.error(error);
         return { success: false, error: 'Failed to fetch more products.' };
+    }
+}
+
+export async function getMoreLocations(lastVisibleId: string | null) {
+    try {
+        const { locations, hasMore } = await getLocationsFromDb({ lastVisibleId });
+        return { success: true, locations, hasMore };
+    } catch (error) {
+        console.error(error);
+        return { success: false, error: 'Failed to fetch more locations.' };
     }
 }
 
@@ -372,8 +382,8 @@ export async function updateOrder(formData: FormData) {
       // If order is shipped, create inventory movements
       if (status === 'shipped') {
         const order = await getOrder(orderId);
-        const locations = await getLocations();
-        const warehouse = locations.find(l => l.type === 'warehouse');
+        const locations = await getLocationsFromDb(); // Use paginated version just to get some locations
+        const warehouse = locations.locations.find(l => l.type === 'warehouse');
         
         if (order && warehouse) {
             for (const item of order.items) {
@@ -463,5 +473,3 @@ export async function exportToBigQuery(input: ExportToBigQueryInput) {
       return { success: false, message: `Export to BigQuery failed: ${message}` };
     }
 }
-
-    
