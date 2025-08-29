@@ -17,9 +17,9 @@ Here is a list of features based on the project requirements.
 - [x] **Ledger-Based Inventory Tracking:** 
     - [x] Implement a ledger system for tracking all inventory movements.
     - [x] Records must include SKU, location, quantity, direction, cause, and timestamp.
-- [ ] **Inventory Level Calculation:** 
-    - [ ] Automatically update materialized inventory levels based on inventory movements. 
-    - [ ] Calculate current quantity, unit of measure and updated at fields.
+- [x] **Inventory Level Calculation:** 
+    - [x] Automatically update materialized inventory levels based on inventory movements. 
+    - [x] Calculate current quantity, unit of measure and updated at fields.
 
 ---
 

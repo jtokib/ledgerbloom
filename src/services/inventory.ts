@@ -1,71 +1,51 @@
-import type { InventoryLevel } from '@/lib/types';
 
-const mockInventoryLevels: InventoryLevel[] = [
-  {
-    id: 'SKU-A1-L_main-warehouse',
-    sku: 'SKU-A1-L',
-    locationId: 'main-warehouse',
-    qty: 1205,
-    uom: 'each',
-    updatedAt: new Date('2023-10-26'),
-  },
-  {
-    id: 'SKU-R2-S_downtown-store',
-    sku: 'SKU-R2-S',
-    locationId: 'downtown-store',
-    qty: 52,
-    uom: 'each',
-    updatedAt: new Date('2023-10-28'),
-  },
-  {
-    id: 'SKU-M3-M_main-warehouse',
-    sku: 'SKU-M3-M',
-    locationId: 'main-warehouse',
-    qty: 780,
-    uom: 'each',
-    updatedAt: new Date('2023-10-22'),
-  },
-  {
-    id: 'SKU-T4-L_eastside-warehouse',
-    sku: 'SKU-T4-L',
-    locationId: 'eastside-warehouse',
-    qty: 450,
-    uom: 'each',
-    updatedAt: new Date('2023-09-15'),
-  },
-  {
-    id: 'SKU-B5-S_downtown-store',
-    sku: 'SKU-B5-S',
-    locationId: 'downtown-store',
-    qty: -10,
-    uom: 'each',
-    updatedAt: new Date('2023-10-29'),
-  },
-  {
-    id: 'SKU-A1-S_main-warehouse',
-    sku: 'SKU-A1-S',
-    locationId: 'main-warehouse',
-    qty: 2500,
-    uom: 'each',
-    updatedAt: new Date('2023-10-20'),
-  },
-  {
-    id: 'SKU-R2-L_eastside-warehouse',
-    sku: 'SKU-R2-L',
-    locationId: 'eastside-warehouse',
-    qty: 300,
-    uom: 'each',
-    updatedAt: new Date('2023-08-01'),
-  },
-];
-
+import type { InventoryLevel, InventoryMovement } from '@/lib/types';
+import { getMovements } from './movements';
 
 /**
  * A mock service to fetch inventory levels.
  * In a real application, this would fetch data from a database or API.
+ * This function now calculates inventory levels from the movements log.
  */
 export async function getInventoryLevels(): Promise<InventoryLevel[]> {
   // Simulate network delay
   await new Promise(resolve => setTimeout(resolve, 500));
-  return mockInventoryLevels;
+
+  const movements = await getMovements();
+
+  const inventoryMap = new Map<string, InventoryLevel>();
+
+  // Sort movements by date to process them in order
+  movements.sort((a, b) => a.occurredAt.getTime() - b.occurredAt.getTime());
+
+  for (const movement of movements) {
+    const key = `${movement.sku}_${movement.locationId}`;
+    
+    let level = inventoryMap.get(key);
+
+    if (!level) {
+      level = {
+        id: key,
+        sku: movement.sku,
+        locationId: movement.locationId,
+        qty: 0,
+        uom: movement.uom,
+        updatedAt: movement.occurredAt,
+      };
+    }
+
+    if (movement.direction === 'in') {
+      level.qty += movement.qty;
+    } else {
+      level.qty -= movement.qty;
+    }
+
+    level.updatedAt = movement.occurredAt > level.updatedAt ? movement.occurredAt : level.updatedAt;
+    level.uom = movement.uom; // Assume last movement's UOM is correct
+
+    inventoryMap.set(key, level);
+  }
+
+  // Sort by SKU for consistent ordering
+  return Array.from(inventoryMap.values()).sort((a, b) => a.sku.localeCompare(b.sku));
 }
