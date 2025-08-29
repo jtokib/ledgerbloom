@@ -1,4 +1,3 @@
-
 'use client';
 
 import { useState } from 'react';
@@ -7,8 +6,8 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Badge } from '@/components/ui/badge';
 import { useToast } from '@/hooks/use-toast';
-import { DatabaseExport } from 'lucide-react';
-// import { exportToBigQuery } from '@/app/actions'; // This will be created later
+import { Database } from 'lucide-react';
+import { exportToBigQuery } from '@/app/actions';
 
 export default function ReportsPage() {
   const [isExporting, setIsExporting] = useState(false);
@@ -16,11 +15,13 @@ export default function ReportsPage() {
 
   const handleExport = async () => {
     setIsExporting(true);
-    // In a real implementation, you would call the server action:
-    // const result = await exportToBigQuery();
-    // For now, we'll simulate it.
-    await new Promise(resolve => setTimeout(resolve, 1500));
-    const result = { success: true, message: 'Data export to BigQuery started successfully.' };
+    
+    const result = await exportToBigQuery({
+        datasetId: "ledgerbloom_data",
+        inventoryTableId: "inventory_levels",
+        movementsTableId: "inventory_movements"
+    });
+    
     setIsExporting(false);
 
     if (result.success) {
@@ -32,7 +33,7 @@ export default function ReportsPage() {
       toast({
         variant: 'destructive',
         title: 'Error',
-        // description: result.error,
+        description: result.message,
       });
     }
   };
@@ -59,7 +60,7 @@ export default function ReportsPage() {
                 <CardDescription>Export your inventory and transactional data to external services.</CardDescription>
             </div>
             <Button onClick={handleExport} disabled={isExporting}>
-                {isExporting ? 'Exporting...' : <> <DatabaseExport className="mr-2 h-4 w-4" /> Export to BigQuery </>}
+                {isExporting ? 'Exporting...' : <> <Database className="mr-2 h-4 w-4" /> Export to BigQuery </>}
             </Button>
         </CardHeader>
         <CardContent>
