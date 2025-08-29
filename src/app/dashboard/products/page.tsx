@@ -1,5 +1,6 @@
 
 'use client';
+import Image from 'next/image';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
@@ -11,6 +12,7 @@ import { useEffect, useState } from "react";
 import type { Product } from "@/lib/types";
 import { getProducts } from "@/services/products";
 import { Skeleton } from "@/components/ui/skeleton";
+import { Package } from 'lucide-react';
 
 
 export default function ProductsPage() {
@@ -60,6 +62,7 @@ export default function ProductsPage() {
         <Table>
           <TableHeader>
             <TableRow>
+              <TableHead className="w-[80px]">Image</TableHead>
               <TableHead>Product Name</TableHead>
               <TableHead>Base UOM</TableHead>
               <TableHead>Variants</TableHead>
@@ -70,6 +73,21 @@ export default function ProductsPage() {
           <TableBody>
             {products.map(product => (
               <TableRow key={product.id}>
+                <TableCell>
+                  {product.imageUrl ? (
+                    <Image
+                      src={product.imageUrl}
+                      alt={product.displayName}
+                      width={40}
+                      height={40}
+                      className="rounded-md object-cover"
+                    />
+                  ) : (
+                    <div className="w-10 h-10 bg-muted rounded-md flex items-center justify-center">
+                        <Package className="w-5 h-5 text-muted-foreground" />
+                    </div>
+                  )}
+                </TableCell>
                 <TableCell className="font-medium">{product.displayName}</TableCell>
                 <TableCell>{product.baseUOM}</TableCell>
                 <TableCell>{product.variants.length}</TableCell>

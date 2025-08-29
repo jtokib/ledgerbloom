@@ -10,9 +10,10 @@ import { createAuditLog } from '@/services/audit';
 import { createUser as createUserInDb } from '@/services/users';
 import { revalidatePath } from 'next/cache';
 import { getAuth } from 'firebase/auth';
-import { app, db } from '@/lib/firebase';
+import { app, db, storage } from '@/lib/firebase';
 import { updateProfile } from 'firebase/auth';
 import { collection, addDoc, doc, updateDoc, deleteDoc, Timestamp, getDoc } from 'firebase/firestore';
+import { ref, uploadBytes, getDownloadURL } from 'firebase/storage';
 import type { Product, Location, InventoryMovement, Order } from '@/lib/types';
 import { getOrder } from '@/services/orders';
 import { getLocations } from '@/services/locations';
@@ -45,14 +46,23 @@ export async function createUser(userId: string, name: string, email: string) {
 
 export async function createProduct(formData: FormData) {
   try {
-    const newProductData: Omit<Product, 'id' | 'variants'> = {
+    const newProductData: Omit<Product, 'id' | 'variants' | 'imageUrl'> = {
       displayName: formData.get('displayName') as string,
       baseUOM: formData.get('baseUOM') as string,
       active: formData.get('active') === 'on',
     };
+    
+    let imageUrl;
+    const imageFile = formData.get('image') as File;
+
+    if (imageFile && imageFile.size > 0) {
+        const storageRef = ref(storage, `products/${Date.now()}_${imageFile.name}`);
+        await uploadBytes(storageRef, imageFile);
+        imageUrl = await getDownloadURL(storageRef);
+    }
 
     const productsCol = collection(db, 'products');
-    const docRef = await addDoc(productsCol, { ...newProductData, variants: [] });
+    const docRef = await addDoc(productsCol, { ...newProductData, variants: [], imageUrl });
 
 
     await createAuditLog({
@@ -105,11 +115,22 @@ export async function updateProduct(formData: FormData) {
       };
       
       const productRef = doc(db, 'products', product.id);
-      await updateDoc(productRef, {
+      
+      const dataToUpdate: Partial<Omit<Product, 'id' | 'variants'>> = {
         displayName: product.displayName,
         baseUOM: product.baseUOM,
         active: product.active,
-      });
+      };
+
+      const imageFile = formData.get('image') as File;
+      if (imageFile && imageFile.size > 0) {
+        const storageRef = ref(storage, `products/${Date.now()}_${imageFile.name}`);
+        await uploadBytes(storageRef, imageFile);
+        dataToUpdate.imageUrl = await getDownloadURL(storageRef);
+      }
+
+
+      await updateDoc(productRef, dataToUpdate);
 
       await createAuditLog({
         user: 'user@example.com', // In a real app, get this from session

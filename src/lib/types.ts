@@ -27,6 +27,7 @@ export interface Product {
   baseUOM: string; // 'lb', 'oz', 'each'
   active: boolean;
   variants: Variant[];
+  imageUrl?: string;
 }
 
 export interface Variant {

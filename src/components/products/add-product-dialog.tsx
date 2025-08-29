@@ -76,6 +76,18 @@ export function AddProductDialog() {
               />
             </div>
             <div className="grid grid-cols-4 items-center gap-4">
+              <Label htmlFor="image" className="text-right">
+                Image
+              </Label>
+              <Input
+                id="image"
+                name="image"
+                type="file"
+                className="col-span-3"
+                accept="image/*"
+              />
+            </div>
+            <div className="grid grid-cols-4 items-center gap-4">
               <Label htmlFor="active" className="text-right">
                 Active
               </Label>

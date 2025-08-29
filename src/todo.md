@@ -17,8 +17,8 @@ Here is a list of features based on the project requirements.
     - [x] Create pages and components for viewing and managing orders.
     - [x] Implement server actions for creating and updating orders.
     - [x] Update inventory when an order status changes (implemented via server action).
-- [ ] **Advanced Features:**
-    - [ ] Implement product image uploads to Firebase Storage.
+- [x] **Advanced Features:**
+    - [x] Implement product image uploads to Firebase Storage.
     - [ ] Add pagination to all data tables to improve performance.
 
 ---

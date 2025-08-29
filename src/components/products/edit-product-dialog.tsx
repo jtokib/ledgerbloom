@@ -1,6 +1,7 @@
 
 'use client';
 import { useState } from 'react';
+import Image from 'next/image';
 import { Button } from '@/components/ui/button';
 import {
   Dialog,
@@ -17,7 +18,7 @@ import { Switch } from '@/components/ui/switch';
 import { useToast } from '@/hooks/use-toast';
 import { updateProduct } from '@/app/actions';
 import type { Product } from '@/lib/types';
-import { Pencil } from 'lucide-react';
+import { Pencil, Package } from 'lucide-react';
 
 export function EditProductDialog({ product }: { product: Product }) {
   const [open, setOpen] = useState(false);
@@ -81,6 +82,34 @@ export function EditProductDialog({ product }: { product: Product }) {
                 defaultValue={product.baseUOM}
                 required
               />
+            </div>
+             <div className="grid grid-cols-4 items-start gap-4">
+              <Label htmlFor="image" className="text-right pt-2">
+                Image
+              </Label>
+              <div className="col-span-3 flex flex-col gap-2">
+                {product.imageUrl ? (
+                    <Image
+                      src={product.imageUrl}
+                      alt={product.displayName}
+                      width={60}
+                      height={60}
+                      className="rounded-md object-cover"
+                    />
+                  ) : (
+                    <div className="w-16 h-16 bg-muted rounded-md flex items-center justify-center">
+                        <Package className="w-8 h-8 text-muted-foreground" />
+                    </div>
+                  )}
+                <Input
+                  id="image"
+                  name="image"
+                  type="file"
+                  className="col-span-3"
+                  accept="image/*"
+                />
+                 <p className="text-xs text-muted-foreground">Leave blank to keep current image.</p>
+              </div>
             </div>
             <div className="grid grid-cols-4 items-center gap-4">
               <Label htmlFor="active" className="text-right">
