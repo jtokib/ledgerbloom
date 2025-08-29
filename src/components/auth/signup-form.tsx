@@ -8,26 +8,34 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { useToast } from '@/hooks/use-toast';
-import { getAuth, signInWithEmailAndPassword, GoogleAuthProvider, signInWithPopup } from 'firebase/auth';
+import { createUserWithEmailAndPassword, updateProfile } from 'firebase/auth';
 import { auth } from '@/lib/firebase';
 
-export function LoginForm() {
+export function SignUpForm() {
   const router = useRouter();
   const { toast } = useToast();
+  const [name, setName] = useState('');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [isLoading, setIsLoading] = useState(false);
 
-  const handleEmailLogin = async (event: React.FormEvent<HTMLFormElement>) => {
+  const handleSignUp = async (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault();
     setIsLoading(true);
     try {
-      await signInWithEmailAndPassword(auth, email, password);
+      const userCredential = await createUserWithEmailAndPassword(auth, email, password);
+      if (userCredential.user) {
+        await updateProfile(userCredential.user, { displayName: name });
+      }
+      toast({
+        title: 'Success!',
+        description: 'Your account has been created.',
+      });
       router.push('/dashboard');
     } catch (error: any) {
       toast({
         variant: 'destructive',
-        title: 'Login Failed',
+        title: 'Sign Up Failed',
         description: error.message,
       });
     } finally {
@@ -35,26 +43,20 @@ export function LoginForm() {
     }
   };
 
-  const handleGoogleLogin = async () => {
-    setIsLoading(true);
-    try {
-        const provider = new GoogleAuthProvider();
-        await signInWithPopup(auth, provider);
-        router.push('/dashboard');
-    } catch (error: any) {
-        toast({
-            variant: 'destructive',
-            title: 'Login Failed',
-            description: error.message,
-        });
-    } finally {
-        setIsLoading(false);
-    }
-  }
-
   return (
     <>
-      <form onSubmit={handleEmailLogin} className="grid gap-4">
+      <form onSubmit={handleSignUp} className="grid gap-4">
+        <div className="grid gap-2">
+          <Label htmlFor="name">Full Name</Label>
+          <Input
+            id="name"
+            placeholder="Mr. Bloom"
+            required
+            value={name}
+            onChange={(e) => setName(e.target.value)}
+            disabled={isLoading}
+          />
+        </div>
         <div className="grid gap-2">
           <Label htmlFor="email">Email</Label>
           <Input
@@ -68,15 +70,7 @@ export function LoginForm() {
           />
         </div>
         <div className="grid gap-2">
-          <div className="flex items-center">
-            <Label htmlFor="password">Password</Label>
-            <a
-              href="#"
-              className="ml-auto inline-block text-sm underline"
-            >
-              Forgot your password?
-            </a>
-          </div>
+          <Label htmlFor="password">Password</Label>
           <Input 
             id="password" 
             type="password" 
@@ -87,16 +81,13 @@ export function LoginForm() {
           />
         </div>
         <Button type="submit" className="w-full" disabled={isLoading}>
-          {isLoading ? 'Logging in...' : 'Login'}
+          {isLoading ? 'Creating Account...' : 'Sign Up'}
         </Button>
       </form>
-      <Button variant="outline" className="w-full" onClick={handleGoogleLogin} disabled={isLoading}>
-        Login with Google
-      </Button>
       <div className="mt-4 text-center text-sm">
-        Don&apos;t have an account?{' '}
-        <Link href="/signup" className="underline">
-          Sign up
+        Already have an account?{' '}
+        <Link href="/" className="underline">
+          Login
         </Link>
       </div>
     </>
