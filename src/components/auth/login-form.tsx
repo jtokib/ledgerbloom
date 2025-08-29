@@ -1,21 +1,59 @@
+
 'use client';
 
+import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
+import { useToast } from '@/hooks/use-toast';
+import { getAuth, signInWithEmailAndPassword, GoogleAuthProvider, signInWithPopup } from 'firebase/auth';
+import { auth } from '@/lib/firebase';
 
 export function LoginForm() {
   const router = useRouter();
+  const { toast } = useToast();
+  const [email, setEmail] = useState('');
+  const [password, setPassword] = useState('');
+  const [isLoading, setIsLoading] = useState(false);
 
-  const handleSubmit = (event: React.FormEvent<HTMLFormElement>) => {
+  const handleEmailLogin = async (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault();
-    // In a real app, you'd handle authentication here
-    router.push('/dashboard');
+    setIsLoading(true);
+    try {
+      await signInWithEmailAndPassword(auth, email, password);
+      router.push('/dashboard');
+    } catch (error: any) {
+      toast({
+        variant: 'destructive',
+        title: 'Login Failed',
+        description: error.message,
+      });
+    } finally {
+      setIsLoading(false);
+    }
   };
 
+  const handleGoogleLogin = async () => {
+    setIsLoading(true);
+    try {
+        const provider = new GoogleAuthProvider();
+        await signInWithPopup(auth, provider);
+        router.push('/dashboard');
+    } catch (error: any) {
+        toast({
+            variant: 'destructive',
+            title: 'Login Failed',
+            description: error.message,
+        });
+    } finally {
+        setIsLoading(false);
+    }
+  }
+
   return (
-    <form onSubmit={handleSubmit} className="grid gap-4">
+    <>
+    <form onSubmit={handleEmailLogin} className="grid gap-4">
       <div className="grid gap-2">
         <Label htmlFor="email">Email</Label>
         <Input
@@ -23,6 +61,9 @@ export function LoginForm() {
           type="email"
           placeholder="m@example.com"
           required
+          value={email}
+          onChange={(e) => setEmail(e.target.value)}
+          disabled={isLoading}
         />
       </div>
       <div className="grid gap-2">
@@ -35,14 +76,22 @@ export function LoginForm() {
             Forgot your password?
           </a>
         </div>
-        <Input id="password" type="password" required />
+        <Input 
+          id="password" 
+          type="password" 
+          required 
+          value={password}
+          onChange={(e) => setPassword(e.target.value)}
+          disabled={isLoading}
+        />
       </div>
-      <Button type="submit" className="w-full">
-        Login
-      </Button>
-      <Button variant="outline" className="w-full">
-        Login with Google
+      <Button type="submit" className="w-full" disabled={isLoading}>
+        {isLoading ? 'Logging in...' : 'Login'}
       </Button>
     </form>
+      <Button variant="outline" className="w-full" onClick={handleGoogleLogin} disabled={isLoading}>
+        Login with Google
+      </Button>
+    </>
   );
 }
