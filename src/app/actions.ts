@@ -6,10 +6,6 @@ import type { InventoryOptimizationSuggestionsInput } from '@/ai/flows/inventory
 import { exportToBigQuery as exportToBigQueryFlow } from '@/ai/flows/export-to-bigquery';
 import type { ExportToBigQueryInput } from '@/ai/flows/export-to-bigquery';
 import {
-  updateProduct as updateProductService,
-  deleteProduct as deleteProductService,
-} from '@/services/products';
-import {
   createLocation as createLocationService,
   updateLocation as updateLocationService,
   deleteLocation as deleteLocationService,
@@ -21,7 +17,7 @@ import { revalidatePath } from 'next/cache';
 import { getAuth } from 'firebase/auth';
 import { app, db } from '@/lib/firebase';
 import { updateProfile } from 'firebase/auth';
-import { collection, addDoc } from 'firebase/firestore';
+import { collection, addDoc, doc, updateDoc, deleteDoc } from 'firebase/firestore';
 import type { Product } from '@/lib/types';
 
 
@@ -37,15 +33,14 @@ export async function generateSuggestions(input: InventoryOptimizationSuggestion
 
 export async function createProduct(formData: FormData) {
   try {
-    const newProductData: Omit<Product, 'id'> = {
+    const newProductData: Omit<Product, 'id' | 'variants'> = {
       displayName: formData.get('displayName') as string,
       baseUOM: formData.get('baseUOM') as string,
       active: formData.get('active') === 'on',
-      variants: [],
     };
 
     const productsCol = collection(db, 'products');
-    const docRef = await addDoc(productsCol, newProductData);
+    const docRef = await addDoc(productsCol, { ...newProductData, variants: [] });
 
 
     await createAuditLog({
@@ -95,7 +90,13 @@ export async function updateProduct(formData: FormData) {
         baseUOM: formData.get('baseUOM') as string,
         active: formData.get('active') === 'on',
       };
-      await updateProductService(product);
+      
+      const productRef = doc(db, 'products', product.id);
+      await updateDoc(productRef, {
+        displayName: product.displayName,
+        baseUOM: product.baseUOM,
+        active: product.active,
+      });
 
       await createAuditLog({
         user: 'user@example.com', // In a real app, get this from session
@@ -118,7 +119,8 @@ export async function updateProduct(formData: FormData) {
   
   export async function deleteProduct(productId: string) {
     try {
-      await deleteProductService(productId);
+      const productRef = doc(db, 'products', productId);
+      await deleteDoc(productRef);
 
       await createAuditLog({
         user: 'user@example.com', // In a real app, get this from session

@@ -15,21 +15,3 @@ export async function getProducts(): Promise<Product[]> {
   const productList = productsSnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as Product));
   return productList;
 }
-
-export async function updateProduct(productData: Omit<Product, 'variants'>): Promise<Product> {
-    const productRef = doc(db, 'products', productData.id);
-    const dataToUpdate = { ...productData };
-    delete (dataToUpdate as any).id; // don't store the id in the document itself
-
-    await updateDoc(productRef, dataToUpdate);
-
-    return {
-        ...productData,
-        variants: [] // variants are not updated here
-    };
-}
-
-export async function deleteProduct(productId: string): Promise<void> {
-    const productRef = doc(db, 'products', productId);
-    await deleteDoc(productRef);
-}
