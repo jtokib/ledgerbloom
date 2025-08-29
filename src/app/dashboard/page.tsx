@@ -1,5 +1,4 @@
 
-import { Bar, BarChart, CartesianGrid, XAxis } from 'recharts';
 import { Button } from '@/components/ui/button';
 import {
   Card,
@@ -9,37 +8,12 @@ import {
   CardHeader,
   CardTitle,
 } from '@/components/ui/card';
-import {
-  ChartContainer,
-  ChartTooltip,
-  ChartTooltipContent,
-} from '@/components/ui/chart';
-import type { ChartConfig } from '@/components/ui/chart';
 import { AddMovementDialog } from '@/components/movements/add-movement-dialog';
 import { getInventoryLevels } from '@/services/inventory';
 import { getLocations } from '@/services/locations';
 import { getMovements } from '@/services/movements';
 import { subDays } from 'date-fns';
-
-const chartData = [
-  { month: 'January', desktop: 186, mobile: 80 },
-  { month: 'February', desktop: 305, mobile: 200 },
-  { month: 'March', desktop: 237, mobile: 120 },
-  { month: 'April', desktop: 73, mobile: 190 },
-  { month: 'May', desktop: 209, mobile: 130 },
-  { month: 'June', desktop: 214, mobile: 140 },
-];
-
-const chartConfig = {
-  desktop: {
-    label: 'Sales',
-    color: 'hsl(var(--chart-1))',
-  },
-  mobile: {
-    label: 'Purchases',
-    color: 'hsl(var(--chart-2))',
-  },
-} satisfies ChartConfig;
+import { DashboardChart } from '@/components/dashboard/dashboard-chart';
 
 export default async function Dashboard() {
   const inventoryLevels = await getInventoryLevels();
@@ -77,7 +51,7 @@ export default async function Dashboard() {
             <span className="text-2xl">🌿</span>
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">${totalInventoryValue.toLocaleString('en-US', { style: 'currency', currency: 'USD' })}</div>
+            <div className="text-2xl font-bold">${totalInventoryValue.toLocaleString()}</div>
             <p className="text-xs text-muted-foreground">
               Based on placeholder values
             </p>
@@ -120,39 +94,7 @@ export default async function Dashboard() {
           </CardContent>
         </Card>
       </div>
-      <Card>
-        <CardHeader>
-          <CardTitle>Sales & Purchases Overview</CardTitle>
-          <CardDescription>January - June 2024</CardDescription>
-        </CardHeader>
-        <CardContent>
-          <ChartContainer config={chartConfig} className="min-h-[200px] w-full">
-            <BarChart accessibilityLayer data={chartData}>
-              <CartesianGrid vertical={false} />
-              <XAxis
-                dataKey="month"
-                tickLine={false}
-                tickMargin={10}
-                axisLine={false}
-                tickFormatter={(value) => value.slice(0, 3)}
-              />
-              <ChartTooltip
-                cursor={false}
-                content={<ChartTooltipContent indicator="dashed" />}
-              />
-              <Bar dataKey="desktop" fill="var(--color-desktop)" radius={4} />
-              <Bar dataKey="mobile" fill="var(--color-mobile)" radius={4} />
-            </BarChart>
-          </ChartContainer>
-        </CardContent>
-        <CardFooter>
-          <div className="flex w-full items-start gap-2 text-sm">
-            <div className="text-muted-foreground">
-              Showing total sales and purchases for the last 6 months.
-            </div>
-          </div>
-        </CardFooter>
-      </Card>
+      <DashboardChart />
     </div>
   );
 }
