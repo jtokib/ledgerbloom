@@ -4,22 +4,34 @@ Here is a list of features based on the project requirements.
 
 ---
 
-## Future Sprints (Backlog)
+## Sprint 4: RBAC and Core Features
 
-*No items in the backlog currently.*
+**Goal:** Implement role-based access control and build out the remaining core application functionality.
+
+- [ ] **Role-Based Access Control (RBAC):**
+    - [ ] Create a `users` collection in Firestore to store user roles.
+    - [ ] Implement logic to check user roles for actions.
+    - [ ] Update Firestore security rules to enforce role-based permissions.
+- [ ] **Order Management:**
+    - [ ] Create pages and components for viewing and managing orders.
+    - [ ] Implement server actions for creating and updating orders.
+    - [ ] Create Cloud Functions to update inventory when an order status changes.
+- [ ] **Advanced Features:**
+    - [ ] Implement product image uploads to Firebase Storage.
+    - [ ] Add pagination to all data tables to improve performance.
 
 ---
 
 ## Completed Tasks
 
-- **Sprint 3:**
-    - [x] **Data Export to BigQuery:** 
-        - [x] Provide real-time or scheduled export of inventory and transactional data.
-        - [x] Ensure audit trails of exports as a system function.
-    - [x] **Audit Logs:** 
-        - [x] Record and retain a detailed audit trail for data access and modifications.
-        - [x] Track user actions, configuration changes, system events, and security-related events.
-        - [x] Ensure all actions are attributed to a user or a service account.
+- **Sprint 3: Audit & Refactor**
+    - [x] **Critical Security Fix (DB-001):** Migrated all database write operations from client-side services to secure, backend-only server actions.
+    - [x] **Initial Security Rules (MISS-005):** Established baseline security rules to require authentication for all database access.
+    - [x] **User Signup (AUTH-001):** Implemented a user registration page and form.
+    - [x] **Dynamic Dashboard (UI-001):** Replaced hardcoded dashboard statistics with live data fetched from Firestore.
+    - [x] **Profile Management (UI-003):** Enabled the "My Profile" section on the settings page, allowing users to update their name.
+    - [x] **Performance Fix (PERF-001):** Converted the Reports page to a Server Component to improve initial load performance.
+    - [x] **Layout Fixes:** Corrected multiple layout and scrolling issues.
 
 - **Sprint 2:**
     - [x] **Fix UI Spacing and Scrolling:**
