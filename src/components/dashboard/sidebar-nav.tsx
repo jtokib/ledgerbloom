@@ -1,3 +1,4 @@
+
 'use client';
 
 import Link from 'next/link';
@@ -12,6 +13,7 @@ import {
   History,
   LineChart,
   FileText,
+  ShoppingCart,
 } from 'lucide-react';
 import {
   Sidebar,
@@ -26,6 +28,7 @@ import { Logo } from '@/components/icons/logo';
 
 const menuItems = [
   { href: '/dashboard', label: 'Dashboard', icon: Home },
+  { href: '/dashboard/orders', label: 'Orders', icon: ShoppingCart },
   { href: '/dashboard/inventory', label: 'Inventory', icon: Boxes },
   { href: '/dashboard/movements', label: 'Movements', icon: History },
   { href: '/dashboard/audit-log', label: 'Audit Log', icon: FileText },

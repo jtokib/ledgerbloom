@@ -1,3 +1,4 @@
+
 export interface Organization {
   id: string;
   name: string;
@@ -38,7 +39,7 @@ export interface Variant {
 }
 
 export interface Location {
-  id: string;
+  id:string;
   name: string;
   address?: string;
   type: 'warehouse' | 'store' | 'supplier';
@@ -64,6 +65,23 @@ export interface InventoryLevel {
   qty: number;
   uom: string;
   updatedAt: Date;
+}
+
+export interface OrderItem {
+    sku: string;
+    quantity: number;
+    name: string;
+    price: number;
+}
+
+export interface Order {
+    id: string;
+    orderNumber: string;
+    status: 'pending' | 'processing' | 'shipped' | 'delivered' | 'cancelled';
+    customerName: string;
+    createdAt: Date;
+    items: OrderItem[];
+    totalValue: number;
 }
 
 export interface ExportLog {
