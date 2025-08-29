@@ -11,7 +11,7 @@ Here is a list of features based on the project requirements.
 
 - [ ] **Audit Logs:** 
     - [x] Create a new page and components for viewing audit logs.
-    - [ ] Integrate `createAuditLog` into all write operations (CUD) for products, locations, orders, and movements.
+    - [x] Integrate `createAuditLog` into all write operations (CUD) for products, locations, orders, and movements.
     - [ ] Record and retain a detailed audit trail for data access and modifications.
     - [ ] Track user actions, configuration changes, system events, and security-related events.
     - [ ] Ensure all actions are attributed to a user or a service account.
@@ -69,3 +69,5 @@ Here is a list of features based on the project requirements.
         - [x] Added `Create` functionality for products and locations.
     - [x] **Mock Data Services:**
         - [x] Established mock data services for `READ` operations.
+
+    
