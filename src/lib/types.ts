@@ -57,3 +57,16 @@ export interface InventoryLevel {
   uom: string;
   updatedAt: Date;
 }
+
+export interface ExportLog {
+  id: string;
+  destination: string;
+  status: 'Completed' | 'Pending' | 'Failed';
+  triggeredBy: string; // email
+  triggeredAt: Date;
+  recordCount: {
+    inventory: number;
+    movements: number;
+  };
+  message?: string;
+}

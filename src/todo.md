@@ -8,9 +8,9 @@ Here is a list of features based on the project requirements.
 
 **Goal:** Implement advanced features for data export and create a comprehensive audit trail for all system activities.
 
-- [ ] **Data Export to BigQuery:** 
-    - [ ] Provide real-time or scheduled export of inventory and transactional data.
-    - [ ] Ensure audit trails of exports as a system function.
+- [x] **Data Export to BigQuery:** 
+    - [x] Provide real-time or scheduled export of inventory and transactional data.
+    - [x] Ensure audit trails of exports as a system function.
 - [ ] **Audit Logs:** 
     - [ ] Record and retain a detailed audit trail for data access and modifications.
     - [ ] Track user actions, configuration changes, system events, and security-related events.

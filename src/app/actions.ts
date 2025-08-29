@@ -15,6 +15,7 @@ import {
   updateLocation as updateLocationService,
   deleteLocation as deleteLocationService,
 } from '@/services/locations';
+import { createExportLog } from '@/services/exports';
 import { revalidatePath } from 'next/cache';
 
 export async function generateSuggestions(input: InventoryOptimizationSuggestionsInput) {
@@ -125,8 +126,16 @@ export async function deleteLocation(locationId: string) {
 export async function exportToBigQuery(input: ExportToBigQueryInput) {
     try {
       const result = await exportToBigQueryFlow(input);
-      // In a real app, you would revalidate a path to show the new export log
-      // revalidatePath('/dashboard/reports');
+      
+      // Create an audit log entry
+      await createExportLog({
+          destination: 'BigQuery',
+          status: result.success ? 'Completed' : 'Failed',
+          triggeredBy: 'user@example.com', // In a real app, get this from the session
+          message: result.message,
+      });
+
+      revalidatePath('/dashboard/reports');
       return { success: result.success, message: result.message };
     } catch (error) {
       const message = error instanceof Error ? error.message : 'An unknown error occurred.';
