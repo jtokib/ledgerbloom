@@ -8,6 +8,9 @@ Here is a list of features based on the project requirements.
 
 **Goal:** Solidify the core inventory management loop and complete the basic administrative CRUD operations.
 
+- [x] **Fix UI Spacing and Scrolling:**
+    - [x] Remove large empty space at the top of the page.
+    - [x] Enable y-axis scrolling for tablet and desktop viewports.
 - [ ] **Product & Location Management (U & D):**
     - [ ] Implement Update and Delete functionality for products.
     - [ ] Implement Update and Delete functionality for locations.
@@ -38,4 +41,4 @@ Here is a list of features based on the project requirements.
     - [x] Initial UI for Core Features (Inventory, Products, Locations).
     - [x] Implemented AI insights page with Genkit flow.
     - [x] Added `Create` functionality for products and locations.
-    - [x_] Established mock data services for `READ` operations.
+    - [x] Established mock data services for `READ` operations.
