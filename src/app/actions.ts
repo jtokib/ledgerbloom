@@ -18,6 +18,7 @@ import type { Product, Location, InventoryMovement, Order } from '@/lib/types';
 import { getOrder } from '@/services/orders';
 import { getLocations as getLocationsFromDb } from '@/services/locations';
 import { getProducts as getProductsFromDb } from '@/services/products';
+import { getMovements as getMovementsFromDb } from '@/services/movements';
 
 
 export async function getMoreProducts(lastVisibleId: string | null) {
@@ -37,6 +38,16 @@ export async function getMoreLocations(lastVisibleId: string | null) {
     } catch (error) {
         console.error(error);
         return { success: false, error: 'Failed to fetch more locations.' };
+    }
+}
+
+export async function getMoreMovements(lastVisibleId: string | null) {
+    try {
+        const { movements, hasMore } = await getMovementsFromDb({ lastVisibleId });
+        return { success: true, movements, hasMore };
+    } catch (error) {
+        console.error(error);
+        return { success: false, error: 'Failed to fetch more movements.' };
     }
 }
 
@@ -382,8 +393,8 @@ export async function updateOrder(formData: FormData) {
       // If order is shipped, create inventory movements
       if (status === 'shipped') {
         const order = await getOrder(orderId);
-        const locations = await getLocationsFromDb(); // Use paginated version just to get some locations
-        const warehouse = locations.locations.find(l => l.type === 'warehouse');
+        const { locations } = await getLocationsFromDb(); // Use paginated version just to get some locations
+        const warehouse = locations.find(l => l.type === 'warehouse');
         
         if (order && warehouse) {
             for (const item of order.items) {

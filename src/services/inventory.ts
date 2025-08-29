@@ -11,7 +11,10 @@ export async function getInventoryLevels(): Promise<InventoryLevel[]> {
   // Simulate network delay
   await new Promise(resolve => setTimeout(resolve, 500));
 
-  const movements = await getMovements();
+  // NOTE: This is fetching ALL movements to calculate levels. 
+  // For a large dataset, this would be inefficient. A real-world app would
+  // likely use a materialized view or a different calculation strategy.
+  const { movements } = await getMovements({limit: 9999});
 
   const inventoryMap = new Map<string, InventoryLevel>();
 
