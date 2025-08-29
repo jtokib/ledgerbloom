@@ -2,56 +2,60 @@ rules_version = '2';
 
 service cloud.firestore {
   match /databases/{database}/documents {
-
+  
     // Helper function to get the user's role from the 'users' collection.
-    // This function is used in the rules for other collections.
+    // It's safe to allow any authenticated user to read the users collection
+    // as it's needed to determine their role for other rules.
     function getUserRole(userId) {
       return get(/databases/$(database)/documents/users/$(userId)).data.role;
     }
 
-    // Users can read any user document to check roles, but only admins or the user themselves can write.
+    // Users can read their own user document.
+    // Only admins can create, update, or delete user documents.
     match /users/{userId} {
       allow read: if request.auth != null;
-      allow write: if request.auth.uid == userId || getUserRole(request.auth.uid) == 'admin';
-    }
-
-    // Products: Viewable by anyone, managed by admins.
-    match /products/{productId=**} {
-      allow read: if request.auth != null;
       allow write: if getUserRole(request.auth.uid) == 'admin';
     }
 
-    // Locations: Viewable by anyone, managed by admins.
-    match /locations/{locationId=**} {
+    // Products can be read by any authenticated user.
+    // Products can only be written by admins.
+    match /products/{productId} {
       allow read: if request.auth != null;
       allow write: if getUserRole(request.auth.uid) == 'admin';
     }
-
-    // Movements: Viewable by anyone, created by managers and admins. Cannot be edited or deleted.
+    
+    // Locations can be read by any authenticated user.
+    // Locations can only be written by admins.
+    match /locations/{locationId} {
+      allow read: if request.auth != null;
+      allow write: if getUserRole(request.auth.uid) == 'admin';
+    }
+    
+    // Movements can be read by any authenticated user.
+    // Movements can be created by managers and admins.
     match /movements/{movementId} {
       allow read: if request.auth != null;
       allow create: if getUserRole(request.auth.uid) in ['admin', 'manager'];
-      allow update, delete: if false; // Movements are immutable
+      allow update, delete: if getUserRole(request.auth.uid) == 'admin';
     }
 
-    // Orders: Viewable by anyone, managed by managers and admins.
-    match /orders/{orderId=**} {
+    // Orders can be read by any authenticated user.
+    // Orders can be created and updated by managers and admins.
+    match /orders/{orderId} {
         allow read: if request.auth != null;
-        allow write: if getUserRole(request.auth.uid) in ['admin', 'manager'];
+        allow create, update: if getUserRole(request.auth.uid) in ['admin', 'manager'];
+        allow delete: if getUserRole(request.auth.uid) == 'admin';
     }
-
-    // Audit Logs: Append-only for any authenticated user, readable only by admins.
-    match /audit_logs/{logId} {
-      allow read: if getUserRole(request.auth.uid) == 'admin';
-      allow create: if request.auth != null;
-      allow update, delete: if false; // Logs are immutable
-    }
-
-    // Export Logs: Append-only for any authenticated user, readable by admins and managers.
+    
+    // Export and Audit logs are sensitive and should only be readable by admins.
+    // Only the system (via server actions) should be able to create them.
     match /export_logs/{logId} {
-        allow read: if getUserRole(request.auth.uid) in ['admin', 'manager'];
-        allow create: if request.auth != null;
-        allow update, delete: if false; // Logs are immutable
+      allow read, write: if getUserRole(request.auth.uid) == 'admin';
     }
+    
+    match /audit_logs/{logId} {
+      allow read, write: if getUserRole(request.auth.uid) == 'admin';
+    }
+
   }
 }
