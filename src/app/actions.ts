@@ -72,7 +72,8 @@ export async function updateUserProfile(formData: FormData) {
 
     } catch (error) {
         console.error(error);
-        return { success: false, error: 'Failed to update profile.' };
+        const message = error instanceof Error ? error.message : 'An unknown error occurred';
+        return { success: false, error: `Failed to update profile: ${message}` };
     }
 }
 
@@ -176,7 +177,7 @@ export async function updateLocation(formData: FormData) {
             active: formData.get('active') === 'on',
         };
         const locationRef = doc(db, 'locations', locationData.id);
-        const dataToUpdate: Omit<Location, 'id'> = {
+        const dataToUpdate: Partial<Omit<Location, 'id'>> = {
             name: locationData.name,
             address: locationData.address,
             type: locationData.type,

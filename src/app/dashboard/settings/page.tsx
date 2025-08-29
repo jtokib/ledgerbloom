@@ -32,7 +32,7 @@ export default function SettingsPage() {
 
 
   return (
-    <Tabs defaultValue="members" className="grid gap-4">
+    <Tabs defaultValue="profile" className="grid gap-4">
       <TabsList className="grid w-full grid-cols-3">
         <TabsTrigger value="profile">My Profile</TabsTrigger>
         <TabsTrigger value="organization">Organization</TabsTrigger>
@@ -70,7 +70,7 @@ export default function SettingsPage() {
           <CardContent className="space-y-4">
             <div className="space-y-2">
               <Label htmlFor="org-name">Organization Name</Label>
-              <Input id="org-name" defaultValue="Mr. Bloom Inc." />
+              <Input id="org-name" defaultValue="Mr. Bloom Inc." disabled />
             </div>
              <div className="space-y-2">
               <Label>Plan</Label>
