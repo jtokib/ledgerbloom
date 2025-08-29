@@ -15,10 +15,11 @@ import { updateProfile } from 'firebase/auth';
 import { collection, addDoc, doc, updateDoc, deleteDoc, Timestamp, getDoc } from 'firebase/firestore';
 import { ref, uploadBytes, getDownloadURL } from 'firebase/storage';
 import type { Product, Location, InventoryMovement, Order } from '@/lib/types';
-import { getOrder } from '@/services/orders';
+import { getOrder as getOrderFromDb } from '@/services/orders';
 import { getLocations as getLocationsFromDb } from '@/services/locations';
 import { getProducts as getProductsFromDb } from '@/services/products';
 import { getMovements as getMovementsFromDb } from '@/services/movements';
+import { getOrders as getOrdersFromDb } from '@/services/orders';
 
 
 export async function getMoreProducts(lastVisibleId: string | null) {
@@ -48,6 +49,16 @@ export async function getMoreMovements(lastVisibleId: string | null) {
     } catch (error) {
         console.error(error);
         return { success: false, error: 'Failed to fetch more movements.' };
+    }
+}
+
+export async function getMoreOrders(lastVisibleId: string | null) {
+    try {
+        const { orders, hasMore } = await getOrdersFromDb({ lastVisibleId });
+        return { success: true, orders, hasMore };
+    } catch (error) {
+        console.error(error);
+        return { success: false, error: 'Failed to fetch more orders.' };
     }
 }
 
@@ -392,7 +403,7 @@ export async function updateOrder(formData: FormData) {
 
       // If order is shipped, create inventory movements
       if (status === 'shipped') {
-        const order = await getOrder(orderId);
+        const order = await getOrderFromDb(orderId);
         const { locations } = await getLocationsFromDb(); // Use paginated version just to get some locations
         const warehouse = locations.find(l => l.type === 'warehouse');
         

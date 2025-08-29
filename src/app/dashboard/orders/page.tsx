@@ -1,30 +1,51 @@
 
 'use client';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle, CardFooter } from "@/components/ui/card";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { useRole } from "@/hooks/use-role";
-import { useEffect, useState } from "react";
+import { useEffect, useState, useTransition } from "react";
 import type { Order } from "@/lib/types";
 import { getOrders } from "@/services/orders";
+import { getMoreOrders } from '@/app/actions';
 import { Skeleton } from "@/components/ui/skeleton";
 import { AddOrderDialog } from "@/components/orders/add-order-dialog";
 import { EditOrderDialog } from "@/components/orders/edit-order-dialog";
+import { useToast } from "@/hooks/use-toast";
 
 export default function OrdersPage() {
   const { role, isLoading: isRoleLoading } = useRole();
   const [orders, setOrders] = useState<Order[]>([]);
+  const [hasMore, setHasMore] = useState(true);
   const [isLoading, setIsLoading] = useState(true);
+  const [isPending, startTransition] = useTransition();
+  const { toast } = useToast();
 
   useEffect(() => {
     async function fetchData() {
-      const ordersData = await getOrders();
-      setOrders(ordersData);
+      const { orders: initialOrders, hasMore: initialHasMore } = await getOrders({ limit: 10 });
+      setOrders(initialOrders);
+      setHasMore(initialHasMore);
       setIsLoading(false);
     }
     fetchData();
   }, []);
+
+  const loadMoreOrders = async () => {
+    if (!hasMore || isPending) return;
+
+    startTransition(async () => {
+        const lastVisibleId = orders[orders.length - 1]?.id;
+        const result = await getMoreOrders(lastVisibleId);
+        if (result.success) {
+            setOrders(prevOrders => [...prevOrders, ...result.orders!]);
+            setHasMore(result.hasMore!);
+        } else {
+            toast({ variant: 'destructive', title: 'Error', description: result.error });
+        }
+    });
+  }
 
   const getStatusVariant = (status: Order['status']) => {
     switch (status) {
@@ -113,6 +134,13 @@ export default function OrdersPage() {
           </TableBody>
         </Table>
       </CardContent>
+       {hasMore && (
+        <CardFooter className="justify-center">
+            <Button onClick={loadMoreOrders} disabled={isPending}>
+                {isPending ? 'Loading...' : 'Load More'}
+            </Button>
+        </CardFooter>
+      )}
     </Card>
   );
 }
