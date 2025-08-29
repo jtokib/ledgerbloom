@@ -1,28 +1,41 @@
+
 # LedgerBloom - Project TODO
 
 Here is a list of features based on the project requirements.
 
 ---
 
-## Sprint 4: RBAC and Core Features
+## Sprint 5: Advanced Features & Auditing
 
-**Goal:** Implement role-based access control and build out the remaining core application functionality.
+**Goal:** Implement advanced features like data exporting and comprehensive audit trails to enhance enterprise readiness.
 
-- [x] **Role-Based Access Control (RBAC):**
-    - [x] Create a `users` collection in Firestore to store user roles.
-    - [x] Implement logic to check user roles for actions.
-    - [x] Update Firestore security rules to enforce role-based permissions.
-- [x] **Order Management:**
-    - [x] Create pages and components for viewing and managing orders.
-    - [x] Implement server actions for creating and updating orders.
-    - [x] Update inventory when an order status changes (implemented via server action).
-- [x] **Advanced Features:**
-    - [x] Implement product image uploads to Firebase Storage.
-    - [x] Add pagination to all data tables to improve performance.
+- [ ] **Audit Logs:** 
+    - [x] Create a new page and components for viewing audit logs.
+    - [ ] Integrate `createAuditLog` into all write operations (CUD) for products, locations, orders, and movements.
+    - [ ] Record and retain a detailed audit trail for data access and modifications.
+    - [ ] Track user actions, configuration changes, system events, and security-related events.
+    - [ ] Ensure all actions are attributed to a user or a service account.
+- [ ] **Data Export to BigQuery:** 
+    - [ ] Provide real-time or scheduled export of inventory and transactional data.
+    - [ ] Ensure audit trails of exports as a system function.
 
 ---
 
 ## Completed Tasks
+
+- **Sprint 4: RBAC and Core Features**
+    - [x] **Role-Based Access Control (RBAC):**
+        - [x] Create a `users` collection in Firestore to store user roles.
+        - [x] Implement logic to check user roles for actions.
+        - [x] Update Firestore security rules to enforce role-based permissions.
+        - [x] Conditionally render UI elements based on user role.
+    - [x] **Order Management:**
+        - [x] Create pages and components for viewing and managing orders.
+        - [x] Implement server actions for creating and updating orders.
+        - [x] Update inventory when an order status changes (implemented via server action).
+    - [x] **Advanced Features:**
+        - [x] Implement product image uploads to Firebase Storage.
+        - [x] Add pagination to all data tables to improve performance.
 
 - **Sprint 3: Audit & Refactor**
     - [x] **Critical Security Fix (DB-001):** Migrated all database write operations from client-side services to secure, backend-only server actions.
