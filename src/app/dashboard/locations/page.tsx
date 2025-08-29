@@ -2,8 +2,11 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
+import { getLocations } from "@/services/locations";
 
-export default function LocationsPage() {
+export default async function LocationsPage() {
+  const locations = await getLocations();
+
   return (
     <Card>
       <CardHeader className="flex flex-row items-center justify-between">
@@ -24,30 +27,16 @@ export default function LocationsPage() {
             </TableRow>
           </TableHeader>
           <TableBody>
-            <TableRow>
-              <TableCell className="font-medium">Main Warehouse</TableCell>
-              <TableCell>Warehouse</TableCell>
-              <TableCell>123 Industrial Ave, Suite 100</TableCell>
-              <TableCell><Badge>Active</Badge></TableCell>
-            </TableRow>
-            <TableRow>
-              <TableCell className="font-medium">Downtown Store</TableCell>
-              <TableCell>Store</TableCell>
-              <TableCell>456 Main St</TableCell>
-              <TableCell><Badge>Active</Badge></TableCell>
-            </TableRow>
-             <TableRow>
-              <TableCell className="font-medium">Eastside Warehouse</TableCell>
-              <TableCell>Warehouse</TableCell>
-              <TableCell>789 Distribution Blvd</TableCell>
-              <TableCell><Badge>Active</Badge></TableCell>
-            </TableRow>
-             <TableRow>
-              <TableCell className="font-medium">Westside Pop-up</TableCell>
-              <TableCell>Store</TableCell>
-              <TableCell>Pop-up location, no permanent address</TableCell>
-              <TableCell><Badge variant="secondary">Inactive</Badge></TableCell>
-            </TableRow>
+            {locations.map(location => (
+              <TableRow key={location.id}>
+                <TableCell className="font-medium">{location.name}</TableCell>
+                <TableCell>{location.type.charAt(0).toUpperCase() + location.type.slice(1)}</TableCell>
+                <TableCell>{location.address}</TableCell>
+                <TableCell>
+                  {location.active ? <Badge>Active</Badge> : <Badge variant="secondary">Inactive</Badge>}
+                </TableCell>
+              </TableRow>
+            ))}
           </TableBody>
         </Table>
       </CardContent>

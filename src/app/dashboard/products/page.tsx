@@ -2,8 +2,11 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
+import { getProducts } from "@/services/products";
 
-export default function ProductsPage() {
+export default async function ProductsPage() {
+  const products = await getProducts();
+
   return (
     <Card>
       <CardHeader className="flex flex-row items-center justify-between">
@@ -24,30 +27,16 @@ export default function ProductsPage() {
             </TableRow>
           </TableHeader>
           <TableBody>
-            <TableRow>
-              <TableCell className="font-medium">Lavender</TableCell>
-              <TableCell>each</TableCell>
-              <TableCell>3</TableCell>
-              <TableCell><Badge>Active</Badge></TableCell>
-            </TableRow>
-             <TableRow>
-              <TableCell className="font-medium">Rosemary</TableCell>
-              <TableCell>each</TableCell>
-              <TableCell>2</TableCell>
-              <TableCell><Badge>Active</Badge></TableCell>
-            </TableRow>
-             <TableRow>
-              <TableCell className="font-medium">Mint</TableCell>
-              <TableCell>each</TableCell>
-              <TableCell>2</TableCell>
-              <TableCell><Badge>Active</Badge></TableCell>
-            </TableRow>
-             <TableRow>
-              <TableCell className="font-medium">Thyme</TableCell>
-              <TableCell>each</TableCell>
-              <TableCell>1</TableCell>
-              <TableCell><Badge variant="secondary">Archived</Badge></TableCell>
-            </TableRow>
+            {products.map(product => (
+              <TableRow key={product.id}>
+                <TableCell className="font-medium">{product.displayName}</TableCell>
+                <TableCell>{product.baseUOM}</TableCell>
+                <TableCell>{product.variants.length}</TableCell>
+                <TableCell>
+                  {product.active ? <Badge>Active</Badge> : <Badge variant="secondary">Archived</Badge>}
+                </TableCell>
+              </TableRow>
+            ))}
           </TableBody>
         </Table>
       </CardContent>
