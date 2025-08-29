@@ -1,13 +1,50 @@
+
+'use client';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
-import { getLocations } from "@/services/locations";
 import { AddLocationDialog } from "@/components/locations/add-location-dialog";
 import { EditLocationDialog } from "@/components/locations/edit-location-dialog";
 import { DeleteLocationDialog } from "@/components/locations/delete-location-dialog";
+import { useRole } from "@/hooks/use-role";
+import { useEffect, useState } from "react";
+import type { Location } from "@/lib/types";
+import { getLocations } from "@/services/locations";
+import { Skeleton } from "@/components/ui/skeleton";
 
-export default async function LocationsPage() {
-  const locations = await getLocations();
+export default function LocationsPage() {
+  const { role, isLoading: isRoleLoading } = useRole();
+  const [locations, setLocations] = useState<Location[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
+
+  useEffect(() => {
+    async function fetchData() {
+      const locationsData = await getLocations();
+      setLocations(locationsData);
+      setIsLoading(false);
+    }
+    fetchData();
+  }, []);
+
+  const showActions = role === 'admin';
+
+  if (isLoading || isRoleLoading) {
+    return (
+      <Card>
+        <CardHeader>
+          <Skeleton className="h-8 w-1/4" />
+          <Skeleton className="h-4 w-1/2" />
+        </CardHeader>
+        <CardContent>
+          <div className="space-y-2">
+            <Skeleton className="h-12 w-full" />
+            <Skeleton className="h-12 w-full" />
+            <Skeleton className="h-12 w-full" />
+          </div>
+        </CardContent>
+      </Card>
+    )
+  }
 
   return (
     <Card>
@@ -16,7 +53,7 @@ export default async function LocationsPage() {
           <CardTitle>Locations</CardTitle>
           <CardDescription>Manage your warehouses, stores, and other locations.</CardDescription>
         </div>
-        <AddLocationDialog />
+        {showActions && <AddLocationDialog />}
       </CardHeader>
       <CardContent>
         <Table>
@@ -26,7 +63,7 @@ export default async function LocationsPage() {
               <TableHead>Type</TableHead>
               <TableHead>Address</TableHead>
               <TableHead>Status</TableHead>
-              <TableHead className="w-[100px] text-right">Actions</TableHead>
+              {showActions && <TableHead className="w-[100px] text-right">Actions</TableHead>}
             </TableRow>
           </TableHeader>
           <TableBody>
@@ -38,10 +75,12 @@ export default async function LocationsPage() {
                 <TableCell>
                   {location.active ? <Badge>Active</Badge> : <Badge variant="secondary">Inactive</Badge>}
                 </TableCell>
-                <TableCell className="text-right">
-                    <EditLocationDialog location={location} />
-                    <DeleteLocationDialog locationId={location.id} />
-                </TableCell>
+                {showActions && (
+                    <TableCell className="text-right">
+                        <EditLocationDialog location={location} />
+                        <DeleteLocationDialog locationId={location.id} />
+                    </TableCell>
+                )}
               </TableRow>
             ))}
           </TableBody>
