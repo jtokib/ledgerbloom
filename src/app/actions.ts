@@ -16,7 +16,7 @@ import { app, db, storage } from '@/lib/firebase';
 import { updateProfile } from 'firebase/auth';
 import { collection, addDoc, doc, updateDoc, deleteDoc, Timestamp, getDoc } from 'firebase/firestore';
 import { ref, uploadBytes, getDownloadURL } from 'firebase/storage';
-import type { Product, Location, InventoryMovement, Order, Variant, User } from '@/lib/types';
+import type { Product, Location, InventoryMovement, Order, Variant, User, FulfillmentData } from '@/lib/types';
 import { getOrder as getOrderFromDb } from '@/services/orders';
 import { getLocations as getLocationsFromDb } from '@/services/locations';
 import { getProducts as getProductsFromDb } from '@/services/products';
@@ -506,6 +506,64 @@ export async function updateOrder(userEmail: string, formData: FormData) {
     }
   }
 
+export async function fulfillOrder(fulfillmentData: FulfillmentData) {
+    const { orderId, items } = fulfillmentData;
+    const actor = fulfillmentData.actor || 'system.webhook';
+
+    try {
+        const order = await getOrderFromDb(orderId);
+        if (!order) {
+            return { success: false, error: `Order with ID ${orderId} not found.` };
+        }
+
+        const { locations } = await getLocationsFromDb();
+        const warehouse = locations.find(l => l.type === 'warehouse');
+        if (!warehouse) {
+            return { success: false, error: 'No warehouse location found to fulfill from.' };
+        }
+
+        for (const item of items) {
+            const movementData: Omit<InventoryMovement, 'id' | 'occurredAt' | 'uom'> = {
+                sku: item.sku,
+                locationId: warehouse.id,
+                qty: item.quantity,
+                direction: 'out',
+                cause: 'sale',
+                actor,
+            };
+            
+            const movementsCol = collection(db, 'movements');
+            await addDoc(movementsCol, {...movementData, uom: 'each', occurredAt: new Date()});
+        }
+        
+        const orderRef = doc(db, 'orders', orderId);
+        await updateDoc(orderRef, { status: 'shipped' });
+
+        await createAuditLog({
+            user: actor,
+            action: 'inventory.adjust.sale',
+            details: {
+                entityType: 'order',
+                entityId: orderId,
+                message: `Inventory adjusted for shipped order ${order.orderNumber} via webhook.`
+            }
+        });
+
+        revalidatePath('/dashboard/orders');
+        revalidatePath('/dashboard/inventory');
+        revalidatePath('/dashboard/movements');
+        revalidatePath('/dashboard/audit-log');
+
+        return { success: true };
+
+    } catch (error) {
+        console.error('Error during order fulfillment:', error);
+        const message = error instanceof Error ? error.message : 'An unknown error occurred';
+        return { success: false, error: `Failed to fulfill order: ${message}` };
+    }
+}
+
+
 export async function exportToBigQuery(userEmail: string, input: ExportToBigQueryInput) {
     try {
       const result = await exportToBigQueryFlow(input);
@@ -627,7 +685,3 @@ export async function deleteUser(userEmail: string, targetUserId: string, target
         return { success: false, error: `Failed to delete user: ${message}` };
     }
 }
-    
-
-    
-    

@@ -120,4 +120,14 @@ export interface AuditLog {
   };
 }
 
+export interface FulfillmentItem {
+    sku: string;
+    quantity: number;
+}
+
+export interface FulfillmentData {
+    orderId: string;
+    items: FulfillmentItem[];
+    actor?: string; // Optional: who triggered the fulfillment
+}
     
