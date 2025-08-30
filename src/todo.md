@@ -1,3 +1,4 @@
+
 # LedgerBloom - Project TODO
 
 Here is a list of features based on the project requirements.
@@ -10,7 +11,7 @@ Here is a list of features based on the project requirements.
 
 - **User Invitations:**
     - [ ] **Implement Invitation Flow:** Create a system for admins to invite new users to the organization via email. This will likely require a new `invitations` collection in Firestore to track pending invites.
-    - [ ] **Build Invitation UI:** Enable the "Invite Member" button on the settings page and create a dialog for sending invitations.
+    - [x] **Build Invitation UI:** Enable the "Invite Member" button on the settings page and create a dialog for sending invitations.
 - **Role Management:**
     - [ ] **Edit User Roles:** Allow admins to change the role of existing members (e.g., from 'viewer' to 'manager').
     - [ ] **Remove Users:** Allow admins to remove members from the organization.
@@ -92,3 +93,6 @@ Here is a list of features based on the project requirements.
     
 
 
+
+
+    

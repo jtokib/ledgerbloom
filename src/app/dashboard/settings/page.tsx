@@ -16,6 +16,7 @@ import { getUsers } from "@/services/users";
 import type { User as AppUser } from "@/lib/types";
 import { Skeleton } from "@/components/ui/skeleton";
 import { useRole } from "@/hooks/use-role";
+import { InviteMemberDialog } from "@/components/members/invite-member-dialog";
 
 function MembersTable() {
   const [members, setMembers] = useState<AppUser[]>([]);
@@ -53,7 +54,7 @@ function MembersTable() {
               <CardTitle>Members</CardTitle>
               <CardDescription>Manage your organization's members and their roles.</CardDescription>
             </div>
-            <Button disabled={currentUserRole !== 'admin'}>Invite Member</Button>
+            <InviteMemberDialog disabled={currentUserRole !== 'admin'} />
           </CardHeader>
           <CardContent>
             <Table>
@@ -168,3 +169,5 @@ export default function SettingsPage() {
     </Tabs>
   )
 }
+
+    

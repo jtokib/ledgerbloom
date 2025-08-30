@@ -1,4 +1,5 @@
 
+
 export interface Organization {
   id: string;
   name: string;
@@ -10,6 +11,15 @@ export interface User {
   email: string;
   displayName?: string;
   role: 'admin' | 'manager' | 'viewer';
+}
+
+export interface Invitation {
+  id: string;
+  email: string;
+  role: User['role'];
+  invitedBy: string; // email of admin
+  createdAt: Date;
+  token: string;
 }
 
 
@@ -109,3 +119,5 @@ export interface AuditLog {
     message: string;
   };
 }
+
+    

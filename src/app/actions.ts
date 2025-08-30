@@ -8,13 +8,14 @@ import type { ExportToBigQueryInput } from '@/ai/flows/export-to-bigquery';
 import { createExportLog } from '@/services/exports';
 import { createAuditLog } from '@/services/audit';
 import { createUser as createUserInDb } from '@/services/users';
+import { createInvitation as createInvitationInDb } from '@/services/invitations';
 import { revalidatePath } from 'next/cache';
 import { getAuth } from 'firebase/auth';
 import { app, db, storage } from '@/lib/firebase';
 import { updateProfile } from 'firebase/auth';
 import { collection, addDoc, doc, updateDoc, deleteDoc, Timestamp, getDoc } from 'firebase/firestore';
 import { ref, uploadBytes, getDownloadURL } from 'firebase/storage';
-import type { Product, Location, InventoryMovement, Order, Variant } from '@/lib/types';
+import type { Product, Location, InventoryMovement, Order, Variant, User } from '@/lib/types';
 import { getOrder as getOrderFromDb } from '@/services/orders';
 import { getLocations as getLocationsFromDb } from '@/services/locations';
 import { getProducts as getProductsFromDb } from '@/services/products';
@@ -524,3 +525,37 @@ export async function exportToBigQuery(userEmail: string, input: ExportToBigQuer
       return { success: false, message: `Export to BigQuery failed: ${message}` };
     }
 }
+
+export async function createInvitation(userEmail: string, invitedEmail: string, role: User['role']) {
+    try {
+        await createInvitationInDb({
+            email: invitedEmail,
+            role: role,
+            invitedBy: userEmail,
+            // In a real app, you would generate a secure, unique token
+            token: `inv_${Date.now()}`, 
+        });
+
+        await createAuditLog({
+            user: userEmail,
+            action: 'user.invite',
+            details: {
+                entityType: 'invitation',
+                entityId: invitedEmail,
+                message: `Invited ${invitedEmail} to the organization with the role: ${role}.`
+            }
+        });
+        
+        revalidatePath('/dashboard/settings');
+        revalidatePath('/dashboard/audit-log');
+        // In a real app, you would also trigger an email to be sent here.
+        return { success: true, message: `Invitation sent to ${invitedEmail}.` };
+
+    } catch (error) {
+        console.error(error);
+        const message = error instanceof Error ? error.message : 'An unknown error occurred';
+        return { success: false, error: `Failed to create invitation: ${message}` };
+    }
+}
+
+    
