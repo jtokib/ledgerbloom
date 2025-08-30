@@ -2,7 +2,7 @@
 'use server';
 import type { User } from '@/lib/types';
 import { db } from '@/lib/firebase';
-import { doc, setDoc, getDoc, collection, getDocs, query, updateDoc } from 'firebase/firestore';
+import { doc, setDoc, getDoc, collection, getDocs, query, updateDoc, deleteDoc } from 'firebase/firestore';
 
 /**
  * A service to create a user document in Firestore.
@@ -25,6 +25,15 @@ export async function createUser(userData: User): Promise<User> {
 export async function updateUser(uid: string, data: Partial<User>): Promise<void> {
     const userRef = doc(db, 'users', uid);
     await updateDoc(userRef, data);
+}
+
+/**
+ * A service to delete a user document from Firestore.
+ * NOTE: This does NOT delete the user from Firebase Authentication.
+ */
+export async function deleteUser(uid: string): Promise<void> {
+    const userRef = doc(db, 'users', uid);
+    await deleteDoc(userRef);
 }
 
 

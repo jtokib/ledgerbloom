@@ -14,7 +14,7 @@ Here is a list of features based on the project requirements.
     - [x] **Build Invitation UI:** Enable the "Invite Member" button on the settings page and create a dialog for sending invitations.
 - **Role Management:**
     - [x] **Edit User Roles:** Allow admins to change the role of existing members (e.g., from 'viewer' to 'manager').
-    - [ ] **Remove Users:** Allow admins to remove members from the organization.
+    - [x] **Remove Users:** Allow admins to remove members from the organization.
 - **Data Display:**
     - [x] **List Organization Members:** The "Members" tab on the settings page should display a real-time list of all users in the organization, fetched from the `users` collection.
 

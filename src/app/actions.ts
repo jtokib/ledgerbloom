@@ -7,7 +7,7 @@ import { exportToBigQuery as exportToBigQueryFlow } from '@/ai/flows/export-to-b
 import type { ExportToBigQueryInput } from '@/ai/flows/export-to-bigquery';
 import { createExportLog } from '@/services/exports';
 import { createAuditLog } from '@/services/audit';
-import { createUser as createUserInDb, updateUser as updateUserInDb } from '@/services/users';
+import { createUser as createUserInDb, updateUser as updateUserInDb, deleteUser as deleteUserInDb } from '@/services/users';
 import { createInvitation as createInvitationInDb } from '@/services/invitations';
 import { revalidatePath } from 'next/cache';
 import { getAuth } from 'firebase/auth';
@@ -580,6 +580,31 @@ export async function updateUserRole(userEmail: string, targetUserId: string, ta
         console.error(error);
         const message = error instanceof Error ? error.message : 'An unknown error occurred';
         return { success: false, error: `Failed to update user role: ${message}` };
+    }
+}
+
+export async function deleteUser(userEmail: string, targetUserId: string, targetUserEmail: string) {
+    try {
+        await deleteUserInDb(targetUserId);
+
+        await createAuditLog({
+            user: userEmail,
+            action: 'user.delete',
+            details: {
+                entityType: 'user',
+                entityId: targetUserId,
+                message: `Deleted user ${targetUserEmail} from the organization.`
+            }
+        });
+        
+        revalidatePath('/dashboard/settings');
+        revalidatePath('/dashboard/audit-log');
+        return { success: true, message: `User deleted successfully.` };
+
+    } catch (error) {
+        console.error(error);
+        const message = error instanceof Error ? error.message : 'An unknown error occurred';
+        return { success: false, error: `Failed to delete user: ${message}` };
     }
 }
     

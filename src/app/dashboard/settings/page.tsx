@@ -18,6 +18,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { useRole } from "@/hooks/use-role";
 import { InviteMemberDialog } from "@/components/members/invite-member-dialog";
 import { EditMemberDialog } from "@/components/members/edit-member-dialog";
+import { DeleteMemberDialog } from "@/components/members/delete-member-dialog";
 
 function MembersTable() {
   const [members, setMembers] = useState<AppUser[]>([]);
@@ -87,6 +88,7 @@ function MembersTable() {
                       {canManageMembers && (
                         <TableCell className="text-right">
                           <EditMemberDialog member={member} disabled={member.id === currentUser?.uid} />
+                          <DeleteMemberDialog member={member} disabled={member.id === currentUser?.uid} />
                         </TableCell>
                       )}
                     </TableRow>
@@ -180,5 +182,3 @@ export default function SettingsPage() {
     </Tabs>
   )
 }
-
-    
