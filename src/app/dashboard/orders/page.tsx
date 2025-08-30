@@ -111,26 +111,34 @@ export default function OrdersPage() {
             </TableRow>
           </TableHeader>
           <TableBody>
-            {orders.map(order => (
-              <TableRow key={order.id}>
-                <TableCell className="font-medium">{order.orderNumber}</TableCell>
-                <TableCell>{order.customerName}</TableCell>
-                <TableCell>{new Date(order.createdAt).toLocaleDateString()}</TableCell>
-                <TableCell>
-                  <Badge variant={getStatusVariant(order.status)} className={getStatusColor(order.status)}>
-                    {order.status.charAt(0).toUpperCase() + order.status.slice(1)}
-                  </Badge>
-                </TableCell>
-                <TableCell className="text-right">
-                    {`$${order.totalValue.toFixed(2)}`}
-                </TableCell>
-                {canManageOrders && (
-                  <TableCell className="text-right">
-                    <EditOrderDialog order={order} />
-                  </TableCell>
-                )}
-              </TableRow>
-            ))}
+            {orders.length === 0 ? (
+                <TableRow>
+                    <TableCell colSpan={canManageOrders ? 6 : 5} className="h-24 text-center">
+                        No orders found.
+                    </TableCell>
+                </TableRow>
+            ) : (
+                orders.map(order => (
+                <TableRow key={order.id}>
+                    <TableCell className="font-medium">{order.orderNumber}</TableCell>
+                    <TableCell>{order.customerName}</TableCell>
+                    <TableCell>{new Date(order.createdAt).toLocaleDateString()}</TableCell>
+                    <TableCell>
+                    <Badge variant={getStatusVariant(order.status)} className={getStatusColor(order.status)}>
+                        {order.status.charAt(0).toUpperCase() + order.status.slice(1)}
+                    </Badge>
+                    </TableCell>
+                    <TableCell className="text-right">
+                        {`$${order.totalValue.toFixed(2)}`}
+                    </TableCell>
+                    {canManageOrders && (
+                    <TableCell className="text-right">
+                        <EditOrderDialog order={order} />
+                    </TableCell>
+                    )}
+                </TableRow>
+                ))
+            )}
           </TableBody>
         </Table>
       </CardContent>

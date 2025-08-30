@@ -15,7 +15,7 @@ Here is a list of features based on the project requirements.
     - [x] **Add/Edit Variants:** Implement UI for adding and editing product variants (with SKU, package size, etc.) within the "Edit Product" dialog.
     - [x] **Display Variants:** Show a product's variants in a collapsible section or on a detail page.
 - **UI Polish:**
-    - [ ] **Empty States:** Add helpful "empty state" messages to tables when there is no data to display (e.g., "No products found").
+    - [x] **Empty States:** Add helpful "empty state" messages to tables when there is no data to display (e.g., "No products found").
 
 ---
 

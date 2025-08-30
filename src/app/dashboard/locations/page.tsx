@@ -89,22 +89,30 @@ export default function LocationsPage() {
             </TableRow>
           </TableHeader>
           <TableBody>
-            {locations.map(location => (
-              <TableRow key={location.id}>
-                <TableCell className="font-medium">{location.name}</TableCell>
-                <TableCell>{location.type.charAt(0).toUpperCase() + location.type.slice(1)}</TableCell>
-                <TableCell>{location.address}</TableCell>
-                <TableCell>
-                  {location.active ? <Badge>Active</Badge> : <Badge variant="secondary">Inactive</Badge>}
-                </TableCell>
-                {showActions && (
-                    <TableCell className="text-right">
-                        <EditLocationDialog location={location} />
-                        <DeleteLocationDialog locationId={location.id} />
+            {locations.length === 0 ? (
+                <TableRow>
+                    <TableCell colSpan={showActions ? 5 : 4} className="h-24 text-center">
+                        No locations found.
                     </TableCell>
-                )}
-              </TableRow>
-            ))}
+                </TableRow>
+            ) : (
+                locations.map(location => (
+                <TableRow key={location.id}>
+                    <TableCell className="font-medium">{location.name}</TableCell>
+                    <TableCell>{location.type.charAt(0).toUpperCase() + location.type.slice(1)}</TableCell>
+                    <TableCell>{location.address}</TableCell>
+                    <TableCell>
+                    {location.active ? <Badge>Active</Badge> : <Badge variant="secondary">Inactive</Badge>}
+                    </TableCell>
+                    {showActions && (
+                        <TableCell className="text-right">
+                            <EditLocationDialog location={location} />
+                            <DeleteLocationDialog locationId={location.id} />
+                        </TableCell>
+                    )}
+                </TableRow>
+                ))
+            )}
           </TableBody>
         </Table>
       </CardContent>

@@ -114,24 +114,32 @@ export default function MovementsPage() {
             </TableRow>
           </TableHeader>
           <TableBody>
-            {movements.map(movement => (
-              <TableRow key={movement.id}>
-                <TableCell className="text-xs text-muted-foreground">{movement.occurredAt.toLocaleDateString()}</TableCell>
-                <TableCell className="font-medium">{getProductDisplayName(movement.sku)}</TableCell>
-                <TableCell>{getLocationName(movement.locationId)}</TableCell>
-                <TableCell>
-                  <Badge variant="outline">{causeDisplay[movement.cause]?.label || movement.cause}</Badge>
-                </TableCell>
-                <TableCell className="text-right font-mono flex items-center justify-end gap-2">
-                  {movement.direction === 'in' ? (
-                    <ArrowUpRight className="h-4 w-4 text-green-500" />
-                  ) : (
-                    <ArrowDownLeft className="h-4 w-4 text-red-500" />
-                  )}
-                  {movement.qty.toLocaleString()} {movement.uom}
+            {movements.length === 0 ? (
+              <TableRow>
+                <TableCell colSpan={5} className="h-24 text-center">
+                  No movements found.
                 </TableCell>
               </TableRow>
-            ))}
+            ) : (
+              movements.map(movement => (
+                <TableRow key={movement.id}>
+                  <TableCell className="text-xs text-muted-foreground">{movement.occurredAt.toLocaleDateString()}</TableCell>
+                  <TableCell className="font-medium">{getProductDisplayName(movement.sku)}</TableCell>
+                  <TableCell>{getLocationName(movement.locationId)}</TableCell>
+                  <TableCell>
+                    <Badge variant="outline">{causeDisplay[movement.cause]?.label || movement.cause}</Badge>
+                  </TableCell>
+                  <TableCell className="text-right font-mono flex items-center justify-end gap-2">
+                    {movement.direction === 'in' ? (
+                      <ArrowUpRight className="h-4 w-4 text-green-500" />
+                    ) : (
+                      <ArrowDownLeft className="h-4 w-4 text-red-500" />
+                    )}
+                    {movement.qty.toLocaleString()} {movement.uom}
+                  </TableCell>
+                </TableRow>
+              ))
+            )}
           </TableBody>
         </Table>
       </CardContent>

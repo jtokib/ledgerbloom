@@ -50,29 +50,37 @@ export default async function InventoryPage() {
             </TableRow>
           </TableHeader>
           <TableBody>
-            {inventoryLevels.map(level => {
-              const product = getProduct(level.sku);
-              const variant = getVariant(level.sku);
-              const location = getLocation(level.locationId);
-              const productName = product ? `${product.displayName} (${variant?.packageSize})` : 'Unknown Product';
-              const locationName = location ? location.name : 'Unknown Location';
-
-              return (
-                <TableRow key={level.id}>
-                  <TableCell className="font-medium">{level.sku}</TableCell>
-                  <TableCell>{productName}</TableCell>
-                  <TableCell>{locationName}</TableCell>
-                  <TableCell className="text-right">
-                    {level.qty < 100 ? (
-                      <Badge variant={level.qty < 0 ? "destructive" : "secondary"}>{level.qty.toLocaleString()}</Badge>
-                    ) : (
-                      level.qty.toLocaleString()
-                    )}
-                  </TableCell>
-                  <TableCell>{level.uom}</TableCell>
+            {inventoryLevels.length === 0 ? (
+                <TableRow>
+                    <TableCell colSpan={5} className="h-24 text-center">
+                        No inventory levels found.
+                    </TableCell>
                 </TableRow>
-              );
-            })}
+            ) : (
+                inventoryLevels.map(level => {
+                const product = getProduct(level.sku);
+                const variant = getVariant(level.sku);
+                const location = getLocation(level.locationId);
+                const productName = product ? `${product.displayName} (${variant?.packageSize})` : 'Unknown Product';
+                const locationName = location ? location.name : 'Unknown Location';
+
+                return (
+                    <TableRow key={level.id}>
+                    <TableCell className="font-medium">{level.sku}</TableCell>
+                    <TableCell>{productName}</TableCell>
+                    <TableCell>{locationName}</TableCell>
+                    <TableCell className="text-right">
+                        {level.qty < 100 ? (
+                        <Badge variant={level.qty < 0 ? "destructive" : "secondary"}>{level.qty.toLocaleString()}</Badge>
+                        ) : (
+                        level.qty.toLocaleString()
+                        )}
+                    </TableCell>
+                    <TableCell>{level.uom}</TableCell>
+                    </TableRow>
+                );
+                })
+            )}
           </TableBody>
         </Table>
       </CardContent>

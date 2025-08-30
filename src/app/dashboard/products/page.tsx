@@ -110,83 +110,93 @@ export default function ProductsPage() {
             </TableRow>
           </TableHeader>
           <TableBody>
-            {products.map(product => (
-              <Collapsible asChild key={product.id} open={openCollapsibles.has(product.id)} onOpenChange={() => toggleCollapsible(product.id)}>
-                <>
-                  <TableRow>
-                     <TableCell>
-                      {product.variants && product.variants.length > 0 && (
-                        <CollapsibleTrigger asChild>
-                            <Button variant="ghost" size="icon">
-                                <ChevronDown className={cn("h-4 w-4 transition-transform", openCollapsibles.has(product.id) && "rotate-180")} />
-                            </Button>
-                        </CollapsibleTrigger>
+            {products.length === 0 ? (
+              <TableRow>
+                <TableCell colSpan={showActions ? 7 : 6} className="h-24 text-center">
+                  No products found.
+                </TableCell>
+              </TableRow>
+            ) : (
+              products.map(product => (
+                <Collapsible asChild key={product.id} open={openCollapsibles.has(product.id)} onOpenChange={() => toggleCollapsible(product.id)}>
+                  <>
+                    <TableRow>
+                      <TableCell>
+                        {product.variants && product.variants.length > 0 && (
+                          <CollapsibleTrigger asChild>
+                              <Button variant="ghost" size="icon">
+                                  <ChevronDown className={cn("h-4 w-4 transition-transform", openCollapsibles.has(product.id) && "rotate-180")} />
+                              </Button>
+                          </CollapsibleTrigger>
+                        )}
+                      </TableCell>
+                      <TableCell>
+                        {product.imageUrl ? (
+                          <Image
+                            src={product.imageUrl}
+                            alt={product.displayName}
+                            width={40}
+                            height={40}
+                            className="rounded-md object-cover"
+                          />
+                        ) : (
+                          <div className="w-10 h-10 bg-muted rounded-md flex items-center justify-center">
+                              <Package className="w-5 h-5 text-muted-foreground" />
+                          </div>
+                        )}
+                      </TableCell>
+                      <TableCell className="font-medium">{product.displayName}</TableCell>
+                      <TableCell>{product.baseUOM}</TableCell>
+                      <TableCell>{product.variants?.length ?? 0}</TableCell>
+                      <TableCell>
+                        {product.active ? <Badge>Active</Badge> : <Badge variant="secondary">Archived</Badge>}
+                      </TableCell>
+                      {showActions && (
+                          <TableCell className="text-right">
+                              <EditProductDialog product={product} />
+                              <DeleteProductDialog productId={product.id} />
+                          </TableCell>
                       )}
-                    </TableCell>
-                    <TableCell>
-                      {product.imageUrl ? (
-                        <Image
-                          src={product.imageUrl}
-                          alt={product.displayName}
-                          width={40}
-                          height={40}
-                          className="rounded-md object-cover"
-                        />
-                      ) : (
-                        <div className="w-10 h-10 bg-muted rounded-md flex items-center justify-center">
-                            <Package className="w-5 h-5 text-muted-foreground" />
-                        </div>
-                      )}
-                    </TableCell>
-                    <TableCell className="font-medium">{product.displayName}</TableCell>
-                    <TableCell>{product.baseUOM}</TableCell>
-                    <TableCell>{product.variants?.length ?? 0}</TableCell>
-                    <TableCell>
-                      {product.active ? <Badge>Active</Badge> : <Badge variant="secondary">Archived</Badge>}
-                    </TableCell>
-                    {showActions && (
-                        <TableCell className="text-right">
-                            <EditProductDialog product={product} />
-                            <DeleteProductDialog productId={product.id} />
-                        </TableCell>
-                    )}
-                  </TableRow>
-                  <CollapsibleContent asChild>
-                     <TableRow>
-                        <TableCell colSpan={showActions ? 7 : 6} className="p-0">
-                           <div className="p-4 bg-muted/50">
-                               <h4 className="font-semibold text-sm mb-2 ml-2">Variants</h4>
-                                <Table>
-                                    <TableHeader>
-                                        <TableRow>
-                                            <TableHead>SKU</TableHead>
-                                            <TableHead>Package Size</TableHead>
-                                            <TableHead>UOM</TableHead>
-                                            <TableHead>Barcode</TableHead>
-                                            <TableHead>Status</TableHead>
-                                        </TableRow>
-                                    </TableHeader>
-                                    <TableBody>
-                                        {product.variants?.map(variant => (
-                                            <TableRow key={variant.id}>
-                                                <TableCell className="font-mono text-xs">{variant.sku}</TableCell>
-                                                <TableCell>{variant.packageSize}</TableCell>
-                                                <TableCell>{variant.uom}</TableCell>
-                                                <TableCell className="font-mono text-xs">{variant.barcode || 'N/A'}</TableCell>
-                                                <TableCell>
-                                                    {variant.active ? <Badge variant="outline">Active</Badge> : <Badge variant="secondary">Inactive</Badge>}
-                                                </TableCell>
-                                            </TableRow>
-                                        ))}
-                                    </TableBody>
-                                </Table>
-                           </div>
-                        </TableCell>
-                     </TableRow>
-                  </CollapsibleContent>
-                </>
-              </Collapsible>
-            ))}
+                    </TableRow>
+                    <CollapsibleContent asChild>
+                      <TableRow>
+                          <TableCell colSpan={showActions ? 7 : 6} className="p-0">
+                            {product.variants?.length > 0 ? (
+                              <div className="p-4 bg-muted/50">
+                                  <h4 className="font-semibold text-sm mb-2 ml-2">Variants</h4>
+                                  <Table>
+                                      <TableHeader>
+                                          <TableRow>
+                                              <TableHead>SKU</TableHead>
+                                              <TableHead>Package Size</TableHead>
+                                              <TableHead>UOM</TableHead>
+                                              <TableHead>Barcode</TableHead>
+                                              <TableHead>Status</TableHead>
+                                          </TableRow>
+                                      </TableHeader>
+                                      <TableBody>
+                                          {product.variants?.map(variant => (
+                                              <TableRow key={variant.id}>
+                                                  <TableCell className="font-mono text-xs">{variant.sku}</TableCell>
+                                                  <TableCell>{variant.packageSize}</TableCell>
+                                                  <TableCell>{variant.uom}</TableCell>
+                                                  <TableCell className="font-mono text-xs">{variant.barcode || 'N/A'}</TableCell>
+                                                  <TableCell>
+                                                      {variant.active ? <Badge variant="outline">Active</Badge> : <Badge variant="secondary">Inactive</Badge>}
+                                                  </TableCell>
+                                              </TableRow>
+                                          ))}
+                                      </TableBody>
+                                  </Table>
+                            </div>
+                            ) : null}
+                          </TableCell>
+                      </TableRow>
+                    </CollapsibleContent>
+                  </>
+                </Collapsible>
+              ))
+            )}
           </TableBody>
         </Table>
       </CardContent>

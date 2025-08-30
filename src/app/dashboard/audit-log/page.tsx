@@ -39,21 +39,29 @@ export default async function AuditLogPage() {
             </TableRow>
           </TableHeader>
           <TableBody>
-            {logs.map(log => (
-              <TableRow key={log.id}>
-                <TableCell className="text-xs text-muted-foreground">{log.occurredAt.toLocaleString()}</TableCell>
-                <TableCell>
-                  <div className="flex items-center gap-2">
-                    {getIcon(log.user)}
-                    <span className="font-medium">{log.user}</span>
-                  </div>
+            {logs.length === 0 ? (
+              <TableRow>
+                <TableCell colSpan={4} className="h-24 text-center">
+                  No audit logs found.
                 </TableCell>
-                <TableCell>
-                  <Badge variant={getActionVariant(log.action)}>{log.action}</Badge>
-                </TableCell>
-                <TableCell className="text-sm text-muted-foreground">{log.details.message}</TableCell>
               </TableRow>
-            ))}
+            ) : (
+              logs.map(log => (
+                <TableRow key={log.id}>
+                  <TableCell className="text-xs text-muted-foreground">{log.occurredAt.toLocaleString()}</TableCell>
+                  <TableCell>
+                    <div className="flex items-center gap-2">
+                      {getIcon(log.user)}
+                      <span className="font-medium">{log.user}</span>
+                    </div>
+                  </TableCell>
+                  <TableCell>
+                    <Badge variant={getActionVariant(log.action)}>{log.action}</Badge>
+                  </TableCell>
+                  <TableCell className="text-sm text-muted-foreground">{log.details.message}</TableCell>
+                </TableRow>
+              ))
+            )}
           </TableBody>
         </Table>
       </CardContent>
