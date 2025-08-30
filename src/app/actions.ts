@@ -10,7 +10,8 @@ import { createAuditLog } from '@/services/audit';
 import { createUser as createUserInDb, updateUser as updateUserInDb, deleteUser as deleteUserInDb } from '@/services/users';
 import { createInvitation as createInvitationInDb, getInvitationByEmail, deleteInvitation as deleteInvitationInDb } from '@/services/invitations';
 import { revalidatePath } from 'next/cache';
-import { getAuth } from 'firebase/auth';
+import { getAuth } from 'firebase-admin/auth';
+import { app as adminApp } from '@/lib/firebase-admin';
 import { app, db, storage } from '@/lib/firebase';
 import { updateProfile } from 'firebase/auth';
 import { collection, addDoc, doc, updateDoc, deleteDoc, Timestamp, getDoc } from 'firebase/firestore';
@@ -72,6 +73,15 @@ export async function generateSuggestions(input: InventoryOptimizationSuggestion
     console.error(error);
     return { success: false, error: 'Failed to generate suggestions. Please try again.' };
   }
+}
+
+async function getCurrentUserEmail() {
+    // This is a placeholder for getting the current user.
+    // In a real app with server-side auth, you'd get this from the session.
+    // For now, we'll simulate it. In a client component, you'd use `useUser`.
+    // On the server, you might need to handle auth differently (e.g., with cookies).
+    // This is a simplified example.
+    return 'admin@ledgerbloom.com';
 }
 
 export async function createUser(userId: string, name: string, email: string) {
@@ -258,35 +268,37 @@ export async function updateProduct(userEmail: string, formData: FormData) {
   }
   
 
-export async function createLocation(userEmail: string, formData: FormData) {
+export async function createLocation(data: Omit<Location, 'id' | 'active'> & { active: boolean | 'on' }) {
     try {
-      const newLocationData: Omit<Location, 'id'> = {
-        name: formData.get('name') as string,
-        address: formData.get('address') as string,
-        type: formData.get('type') as 'warehouse' | 'store' | 'supplier',
-        active: formData.get('active') === 'on',
-      };
-      const locationsCol = collection(db, 'locations');
-      const docRef = await addDoc(locationsCol, newLocationData);
+        const userEmail = await getCurrentUserEmail();
+        const newLocationData: Omit<Location, 'id'> = {
+            name: data.name,
+            address: data.address,
+            type: data.type,
+            active: data.active === 'on' || data.active === true,
+        };
+        const locationsCol = collection(db, 'locations');
+        const docRef = await addDoc(locationsCol, newLocationData);
 
-      await createAuditLog({
-        user: userEmail,
-        action: 'location.create',
-        details: {
-            entityType: 'location',
-            entityId: docRef.id,
-            message: `Created new location: ${newLocationData.name}`
-        }
-      });
+        await createAuditLog({
+            user: userEmail,
+            action: 'location.create',
+            details: {
+                entityType: 'location',
+                entityId: docRef.id,
+                message: `Created new location: ${newLocationData.name}`
+            }
+        });
 
-      revalidatePath('/dashboard/locations');
-      revalidatePath('/dashboard/audit-log');
-      return { success: true };
+        revalidatePath('/dashboard/locations');
+        revalidatePath('/dashboard/audit-log');
+        return { success: true };
     } catch (error) {
-      console.error(error);
-      return { success: false, error: 'Failed to create location.' };
+        console.error(error);
+        return { success: false, error: 'Failed to create location.' };
     }
-  }
+}
+
 
 export async function updateLocation(userEmail: string, formData: FormData) {
     try {
@@ -617,4 +629,5 @@ export async function deleteUser(userEmail: string, targetUserId: string, target
 }
     
 
+    
     
