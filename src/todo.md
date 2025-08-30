@@ -4,22 +4,32 @@ Here is a list of features based on the project requirements.
 
 ---
 
-## Sprint 6: Dashboard & Product Enhancements
+## Sprint 7: User Management & Collaboration
 
-**Goal:** Transform the dashboard into a dynamic, data-driven tool and add more robust product variant management.
+**Goal:** Enable administrators to manage team members and their roles directly within the application.
 
-- **Dashboard Improvements:**
-    - [x] **Dynamic Chart Data:** Replace the static dashboard chart with one that displays real sales and purchase data from the last 30 days.
-    - [x] **Recent Activity Feed:** Add a component to the dashboard that shows the 5 most recent inventory movements.
-- **Product Variant Management:**
-    - [x] **Add/Edit Variants:** Implement UI for adding and editing product variants (with SKU, package size, etc.) within the "Edit Product" dialog.
-    - [x] **Display Variants:** Show a product's variants in a collapsible section or on a detail page.
-- **UI Polish:**
-    - [x] **Empty States:** Add helpful "empty state" messages to tables when there is no data to display (e.g., "No products found").
+- **User Invitations:**
+    - [ ] **Implement Invitation Flow:** Create a system for admins to invite new users to the organization via email. This will likely require a new `invitations` collection in Firestore to track pending invites.
+    - [ ] **Build Invitation UI:** Enable the "Invite Member" button on the settings page and create a dialog for sending invitations.
+- **Role Management:**
+    - [ ] **Edit User Roles:** Allow admins to change the role of existing members (e.g., from 'viewer' to 'manager').
+    - [ ] **Remove Users:** Allow admins to remove members from the organization.
+- **Data Display:**
+    - [ ] **List Organization Members:** The "Members" tab on the settings page should display a real-time list of all users in the organization, fetched from the `users` collection.
 
 ---
 
 ## Completed Tasks
+
+- **Sprint 6: Dashboard & Product Enhancements**
+    - [x] **Dashboard Improvements:**
+        - [x] **Dynamic Chart Data:** Replace the static dashboard chart with one that displays real sales and purchase data from the last 30 days.
+        - [x] **Recent Activity Feed:** Add a component to the dashboard that shows the 5 most recent inventory movements.
+    - [x] **Product Variant Management:**
+        - [x] **Add/Edit Variants:** Implement UI for adding and editing product variants (with SKU, package size, etc.) within the "Edit Product" dialog.
+        - [x] **Display Variants:** Show a product's variants in a collapsible section or on a detail page.
+    - [x] **UI Polish:**
+        - [x] **Empty States:** Add helpful "empty state" messages to tables when there is no data to display (e.g., "No products found").
 
 - **Sprint 5: Advanced Features & Auditing**
     - [x] **Audit Logs:** 
@@ -80,3 +90,4 @@ Here is a list of features based on the project requirements.
         - [x] Established mock data services for `READ` operations.
 
     
+
