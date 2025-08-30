@@ -2,7 +2,7 @@
 'use server';
 import type { User } from '@/lib/types';
 import { db } from '@/lib/firebase';
-import { doc, setDoc, getDoc } from 'firebase/firestore';
+import { doc, setDoc, getDoc, collection, getDocs, query } from 'firebase/firestore';
 
 /**
  * A service to create a user document in Firestore.
@@ -32,4 +32,25 @@ export async function getUser(uid: string): Promise<User | null> {
         console.warn(`No user document found for UID: ${uid}`);
         return null;
     }
+}
+
+/**
+ * A service to fetch all user documents from Firestore.
+ */
+export async function getUsers(): Promise<User[]> {
+    const usersCol = collection(db, 'users');
+    const q = query(usersCol);
+    const usersSnapshot = await getDocs(q);
+
+    const userList = usersSnapshot.docs.map(doc => {
+        const data = doc.data();
+        return {
+            id: doc.id,
+            email: data.email,
+            displayName: data.displayName,
+            role: data.role,
+        } as User;
+    });
+
+    return userList;
 }

@@ -15,7 +15,7 @@ Here is a list of features based on the project requirements.
     - [ ] **Edit User Roles:** Allow admins to change the role of existing members (e.g., from 'viewer' to 'manager').
     - [ ] **Remove Users:** Allow admins to remove members from the organization.
 - **Data Display:**
-    - [ ] **List Organization Members:** The "Members" tab on the settings page should display a real-time list of all users in the organization, fetched from the `users` collection.
+    - [x] **List Organization Members:** The "Members" tab on the settings page should display a real-time list of all users in the organization, fetched from the `users` collection.
 
 ---
 
@@ -90,4 +90,5 @@ Here is a list of features based on the project requirements.
         - [x] Established mock data services for `READ` operations.
 
     
+
 

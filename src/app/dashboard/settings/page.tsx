@@ -11,7 +11,81 @@ import { Badge } from "@/components/ui/badge";
 import { useUser } from "reactfire";
 import { updateUserProfile } from "@/app/actions";
 import { useToast } from "@/hooks/use-toast";
-import { useRef } from "react";
+import { useRef, useState, useEffect } from "react";
+import { getUsers } from "@/services/users";
+import type { User as AppUser } from "@/lib/types";
+import { Skeleton } from "@/components/ui/skeleton";
+import { useRole } from "@/hooks/use-role";
+
+function MembersTable() {
+  const [members, setMembers] = useState<AppUser[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
+  const { role: currentUserRole } = useRole();
+
+  useEffect(() => {
+    async function fetchMembers() {
+      try {
+        const userList = await getUsers();
+        setMembers(userList);
+      } catch (error) {
+        console.error("Failed to fetch members:", error);
+      } finally {
+        setIsLoading(false);
+      }
+    }
+    fetchMembers();
+  }, []);
+
+  if (isLoading) {
+     return (
+      <div className="space-y-2">
+        <Skeleton className="h-12 w-full" />
+        <Skeleton className="h-12 w-full" />
+        <Skeleton className="h-12 w-full" />
+      </div>
+    )
+  }
+
+  return (
+      <Card>
+          <CardHeader className="flex flex-row items-center justify-between">
+            <div>
+              <CardTitle>Members</CardTitle>
+              <CardDescription>Manage your organization's members and their roles.</CardDescription>
+            </div>
+            <Button disabled={currentUserRole !== 'admin'}>Invite Member</Button>
+          </CardHeader>
+          <CardContent>
+            <Table>
+              <TableHeader>
+                <TableRow>
+                  <TableHead>Name</TableHead>
+                  <TableHead>Email</TableHead>
+                  <TableHead>Role</TableHead>
+                </TableRow>
+              </TableHeader>
+              <TableBody>
+                {members.length === 0 ? (
+                   <TableRow>
+                      <TableCell colSpan={3} className="h-24 text-center">
+                          No members found.
+                      </TableCell>
+                  </TableRow>
+                ) : (
+                  members.map(member => (
+                    <TableRow key={member.id}>
+                      <TableCell className="font-medium">{member.displayName ?? 'N/A'}</TableCell>
+                      <TableCell>{member.email}</TableCell>
+                      <TableCell><Badge variant="outline" className="capitalize">{member.role}</Badge></TableCell>
+                    </TableRow>
+                  ))
+                )}
+              </TableBody>
+            </Table>
+          </CardContent>
+        </Card>
+  )
+}
 
 export default function SettingsPage() {
   const { data: user } = useUser();
@@ -89,38 +163,8 @@ export default function SettingsPage() {
       </TabsContent>
 
       <TabsContent value="members">
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between">
-            <div>
-              <CardTitle>Members</CardTitle>
-              <CardDescription>Manage your organization's members and their roles.</CardDescription>
-            </div>
-            <Button disabled>Invite Member</Button>
-          </CardHeader>
-          <CardContent>
-            <Table>
-              <TableHeader>
-                <TableRow>
-                  <TableHead>Name</TableHead>
-                  <TableHead>Email</TableHead>
-                  <TableHead>Role</TableHead>
-                  <TableHead>Status</TableHead>
-                </TableRow>
-              </TableHeader>
-              <TableBody>
-                <TableRow>
-                  <TableCell className="font-medium">{user?.displayName ?? 'Bloom User'}</TableCell>
-                  <TableCell>{user?.email}</TableCell>
-                  <TableCell><Badge variant="outline">Admin</Badge></TableCell>
-                  <TableCell><Badge>Active</Badge></TableCell>
-                </TableRow>
-              </TableBody>
-            </Table>
-          </CardContent>
-        </Card>
+        <MembersTable />
       </TabsContent>
     </Tabs>
   )
 }
-
-    
