@@ -14,7 +14,7 @@ import { app, db, storage } from '@/lib/firebase';
 import { updateProfile } from 'firebase/auth';
 import { collection, addDoc, doc, updateDoc, deleteDoc, Timestamp, getDoc } from 'firebase/firestore';
 import { ref, uploadBytes, getDownloadURL } from 'firebase/storage';
-import type { Product, Location, InventoryMovement, Order } from '@/lib/types';
+import type { Product, Location, InventoryMovement, Order, Variant } from '@/lib/types';
 import { getOrder as getOrderFromDb } from '@/services/orders';
 import { getLocations as getLocationsFromDb } from '@/services/locations';
 import { getProducts as getProductsFromDb } from '@/services/products';
@@ -104,9 +104,21 @@ export async function createProduct(userEmail: string, formData: FormData) {
         await uploadBytes(storageRef, imageFile);
         imageUrl = await getDownloadURL(storageRef);
     }
+    
+    const sku = formData.get('sku') as string;
+    const variants: Variant[] = [];
+    if(sku) {
+        variants.push({
+            id: `var_${Date.now()}`,
+            sku: sku,
+            packageSize: 'Default',
+            uom: newProductData.baseUOM,
+            active: true
+        });
+    }
 
     const productsCol = collection(db, 'products');
-    const docRef = await addDoc(productsCol, { ...newProductData, variants: [], imageUrl });
+    const docRef = await addDoc(productsCol, { ...newProductData, variants, imageUrl });
 
 
     await createAuditLog({
@@ -163,19 +175,24 @@ export async function updateUserProfile(userEmail: string, formData: FormData) {
 
 export async function updateProduct(userEmail: string, formData: FormData) {
     try {
-      const product = {
-        id: formData.get('id') as string,
+      const productId = formData.get('id') as string;
+      
+      const variantsData = JSON.parse(formData.get('variants') as string);
+      
+      const variants: Variant[] = variantsData.map((v: any) => ({
+        id: v.id || `var_${Date.now()}_${Math.random()}`,
+        sku: v.sku,
+        packageSize: v.packageSize,
+        uom: v.uom,
+        active: v.active,
+        barcode: v.barcode || '',
+      }));
+
+      const dataToUpdate: Partial<Omit<Product, 'id'>> = {
         displayName: formData.get('displayName') as string,
         baseUOM: formData.get('baseUOM') as string,
         active: formData.get('active') === 'on',
-      };
-      
-      const productRef = doc(db, 'products', product.id);
-      
-      const dataToUpdate: Partial<Omit<Product, 'id' | 'variants'>> = {
-        displayName: product.displayName,
-        baseUOM: product.baseUOM,
-        active: product.active,
+        variants,
       };
 
       const imageFile = formData.get('image') as File;
@@ -185,7 +202,7 @@ export async function updateProduct(userEmail: string, formData: FormData) {
         dataToUpdate.imageUrl = await getDownloadURL(storageRef);
       }
 
-
+      const productRef = doc(db, 'products', productId);
       await updateDoc(productRef, dataToUpdate);
 
       await createAuditLog({
@@ -193,8 +210,8 @@ export async function updateProduct(userEmail: string, formData: FormData) {
         action: 'product.update',
         details: {
             entityType: 'product',
-            entityId: product.id,
-            message: `Updated product: ${product.displayName}`
+            entityId: productId,
+            message: `Updated product: ${dataToUpdate.displayName}`
         }
       });
 
@@ -507,5 +524,3 @@ export async function exportToBigQuery(userEmail: string, input: ExportToBigQuer
       return { success: false, message: `Export to BigQuery failed: ${message}` };
     }
 }
-
-    

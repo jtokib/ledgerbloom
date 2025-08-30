@@ -112,7 +112,7 @@ export default function ProductsPage() {
                 </TableCell>
                 <TableCell className="font-medium">{product.displayName}</TableCell>
                 <TableCell>{product.baseUOM}</TableCell>
-                <TableCell>{product.variants.length}</TableCell>
+                <TableCell>{product.variants?.length ?? 0}</TableCell>
                 <TableCell>
                   {product.active ? <Badge>Active</Badge> : <Badge variant="secondary">Archived</Badge>}
                 </TableCell>

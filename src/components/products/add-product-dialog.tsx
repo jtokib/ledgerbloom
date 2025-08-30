@@ -81,6 +81,18 @@ export function AddProductDialog() {
                 required
               />
             </div>
+             <div className="grid grid-cols-4 items-center gap-4">
+              <Label htmlFor="sku" className="text-right">
+                Initial SKU
+              </Label>
+              <Input
+                id="sku"
+                name="sku"
+                className="col-span-3"
+                placeholder="e.g., PN-12345"
+                required
+              />
+            </div>
             <div className="grid grid-cols-4 items-center gap-4">
               <Label htmlFor="image" className="text-right">
                 Image
