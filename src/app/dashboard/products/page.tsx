@@ -10,15 +10,16 @@ import { EditProductDialog } from "@/components/products/edit-product-dialog";
 import { DeleteProductDialog } from "@/components/products/delete-product-dialog";
 import { Button } from '@/components/ui/button';
 import { useRole } from "@/hooks/use-role";
-import { useEffect, useState, useTransition } from "react";
+import { useEffect, useState, useTransition, useMemo } from "react";
 import type { Product } from "@/lib/types";
 import { getProducts } from "@/services/products";
 import { getMoreProducts } from '@/app/actions';
 import { Skeleton } from "@/components/ui/skeleton";
-import { Package, ChevronDown } from 'lucide-react';
+import { Package, ChevronDown, Search } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
 import { cn } from '@/lib/utils';
+import { Input } from '@/components/ui/input';
 
 
 export default function ProductsPage() {
@@ -28,6 +29,7 @@ export default function ProductsPage() {
   const [isLoading, setIsLoading] = useState(true);
   const [isPending, startTransition] = useTransition();
   const [openCollapsibles, setOpenCollapsibles] = useState<Set<string>>(new Set());
+  const [searchTerm, setSearchTerm] = useState('');
   const { toast } = useToast();
 
   useEffect(() => {
@@ -67,6 +69,16 @@ export default function ProductsPage() {
     });
   }
 
+  const filteredProducts = useMemo(() => {
+    if (!searchTerm) {
+        return products;
+    }
+    return products.filter(product => 
+        product.displayName.toLowerCase().includes(searchTerm.toLowerCase())
+    );
+  }, [products, searchTerm]);
+
+
   const showActions = role === 'admin';
 
   if (isLoading || isRoleLoading) {
@@ -89,10 +101,20 @@ export default function ProductsPage() {
 
   return (
     <Card>
-      <CardHeader className="flex flex-row items-center justify-between">
+      <CardHeader className="flex flex-row items-start justify-between gap-4">
         <div>
           <CardTitle>Products</CardTitle>
           <CardDescription>Manage your products and their variants.</CardDescription>
+          <div className="relative mt-4">
+            <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
+            <Input 
+                type="search"
+                placeholder="Search products by name..."
+                className="pl-8 sm:w-[300px] md:w-[200px] lg:w-[300px]"
+                value={searchTerm}
+                onChange={(e) => setSearchTerm(e.target.value)}
+            />
+          </div>
         </div>
         {showActions && <AddProductDialog />}
       </CardHeader>
@@ -110,14 +132,14 @@ export default function ProductsPage() {
             </TableRow>
           </TableHeader>
           <TableBody>
-            {products.length === 0 ? (
+            {filteredProducts.length === 0 ? (
               <TableRow>
                 <TableCell colSpan={showActions ? 7 : 6} className="h-24 text-center">
-                  No products found.
+                  {searchTerm ? "No products match your search." : "No products found."}
                 </TableCell>
               </TableRow>
             ) : (
-              products.map(product => (
+              filteredProducts.map(product => (
                 <Collapsible asChild key={product.id} open={openCollapsibles.has(product.id)} onOpenChange={() => toggleCollapsible(product.id)}>
                   <>
                     <TableRow>
@@ -200,7 +222,7 @@ export default function ProductsPage() {
           </TableBody>
         </Table>
       </CardContent>
-      {hasMore && (
+      {hasMore && !searchTerm && (
         <CardFooter className="justify-center">
             <Button onClick={loadMoreProducts} disabled={isPending}>
                 {isPending ? 'Loading...' : 'Load More'}

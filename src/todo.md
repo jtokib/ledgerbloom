@@ -12,7 +12,7 @@ Here is a list of features based on the project requirements.
     *   [x] **Integrate Live Data:** Modify the AI Insights page to use live inventory and movement data directly from Firestore instead of requiring the user to paste it. This will provide more accurate and timely suggestions.
     *   [x] **Create a `getLiveInventoryData` Tool:** Develop a Genkit tool that can be used by flows to fetch and summarize the current inventory state, making it easier for the AI to reason about the data.
 *   **UI Enhancements:**
-    *   [ ] **Implement Search/Filtering:** Add search and filtering capabilities to the main data tables (Products, Locations, Orders, Movements) to allow users to find information more quickly.
+    *   [x] **Implement Search/Filtering:** Add search and filtering capabilities to the main data tables (Products, Locations, Orders, Movements) to allow users to find information more quickly.
     - [ ] **Form Validation:** Introduce more robust client-side form validation using a library like `zod` to provide immediate feedback to users and improve data integrity.
 
 ---
