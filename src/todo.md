@@ -10,7 +10,7 @@ Here is a list of features based on the project requirements.
 
 - **Dashboard Improvements:**
     - [x] **Dynamic Chart Data:** Replace the static dashboard chart with one that displays real sales and purchase data from the last 30 days.
-    - [ ] **Recent Activity Feed:** Add a component to the dashboard that shows the 5 most recent inventory movements.
+    - [x] **Recent Activity Feed:** Add a component to the dashboard that shows the 5 most recent inventory movements.
 - **Product Variant Management:**
     - [ ] **Add/Edit Variants:** Implement UI for adding and editing product variants (with SKU, package size, etc.) within the "Edit Product" dialog.
     - [ ] **Display Variants:** Show a product's variants in a collapsible section or on a detail page.

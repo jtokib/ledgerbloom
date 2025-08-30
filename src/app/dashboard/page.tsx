@@ -12,13 +12,17 @@ import { AddMovementDialog } from '@/components/movements/add-movement-dialog';
 import { getInventoryLevels } from '@/services/inventory';
 import { getLocations } from '@/services/locations';
 import { getMovements } from '@/services/movements';
+import { getProducts } from '@/services/products';
 import { subDays, format, startOfDay, eachDayOfInterval } from 'date-fns';
 import { DashboardChart } from '@/components/dashboard/dashboard-chart';
+import { RecentActivity } from '@/components/dashboard/recent-activity';
 
 export default async function Dashboard() {
   const inventoryLevels = await getInventoryLevels();
-  const { locations } = await getLocations();
-  const { movements } = await getMovements({ limit: 1000 }); // Fetch more for chart
+  const { locations } = await getLocations({ limit: 1000 });
+  const { movements } = await getMovements({ limit: 1000 }); // Fetch more for chart and activity
+  const { products } = await getProducts({ limit: 1000 });
+
 
   // This is a placeholder calculation. A real app would use product cost.
   const totalInventoryValue = inventoryLevels.reduce((acc, level) => acc + (level.qty * 10), 0); 
@@ -58,6 +62,9 @@ export default async function Dashboard() {
   
   const chartData = Array.from(dailyDataMap.values());
   // --- End Chart Data Calculation ---
+
+  const recentMovements = movements.slice(0, 5);
+
 
   return (
     <div className="flex flex-col gap-4">
@@ -121,7 +128,14 @@ export default async function Dashboard() {
           </CardContent>
         </Card>
       </div>
-      <DashboardChart data={chartData} />
+      <div className="grid gap-4 md:grid-cols-2 md:gap-8 lg:grid-cols-7">
+        <div className="lg:col-span-4">
+          <DashboardChart data={chartData} />
+        </div>
+        <div className="lg:col-span-3">
+            <RecentActivity movements={recentMovements} products={products} locations={locations} />
+        </div>
+      </div>
     </div>
   );
 }
