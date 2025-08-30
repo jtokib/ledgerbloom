@@ -4,23 +4,33 @@ Here is a list of features based on the project requirements.
 
 ---
 
-## Sprint 5: Advanced Features & Auditing
+## Sprint 6: Dashboard & Product Enhancements
 
-**Goal:** Implement advanced features like data exporting and comprehensive audit trails to enhance enterprise readiness.
+**Goal:** Transform the dashboard into a dynamic, data-driven tool and add more robust product variant management.
 
-- [x] **Audit Logs:** 
-    - [x] Create a new page and components for viewing audit logs.
-    - [x] Integrate `createAuditLog` into all write operations (CUD) for products, locations, orders, and movements.
-    - [x] Ensure all actions are attributed to a user or a service account.
-    - [x] Record and retain a detailed audit trail for data access and modifications.
-    - [x] Track user actions, configuration changes, system events, and security-related events.
-- [x] **Data Export to BigQuery:** 
-    - [x] Provide real-time or scheduled export of inventory and transactional data.
-    - [x] Ensure audit trails of exports as a system function.
+- **Dashboard Improvements:**
+    - [ ] **Dynamic Chart Data:** Replace the static dashboard chart with one that displays real sales and purchase data from the last 30 days.
+    - [ ] **Recent Activity Feed:** Add a component to the dashboard that shows the 5 most recent inventory movements.
+- **Product Variant Management:**
+    - [ ] **Add/Edit Variants:** Implement UI for adding and editing product variants (with SKU, package size, etc.) within the "Edit Product" dialog.
+    - [ ] **Display Variants:** Show a product's variants in a collapsible section or on a detail page.
+- **UI Polish:**
+    - [ ] **Empty States:** Add helpful "empty state" messages to tables when there is no data to display (e.g., "No products found").
 
 ---
 
 ## Completed Tasks
+
+- **Sprint 5: Advanced Features & Auditing**
+    - [x] **Audit Logs:** 
+        - [x] Create a new page and components for viewing audit logs.
+        - [x] Integrate `createAuditLog` into all write operations (CUD) for products, locations, orders, and movements.
+        - [x] Ensure all actions are attributed to a user or a service account.
+        - [x] Record and retain a detailed audit trail for data access and modifications.
+        - [x] Track user actions, configuration changes, system events, and security-related events.
+    - [x] **Data Export to BigQuery:** 
+        - [x] Provide real-time or scheduled export of inventory and transactional data.
+        - [x] Ensure audit trails of exports as a system function.
 
 - **Sprint 4: RBAC and Core Features**
     - [x] **Role-Based Access Control (RBAC):**
