@@ -1,18 +1,101 @@
-
 rules_version = '2';
 
 service cloud.firestore {
   match /databases/{database}/documents {
+  
+    // Helper functions
+    function isAuthenticated() {
+      return request.auth != null;
+    }
     
-    // Default deny all access
+    function getUserRole(userId) {
+      return get(/databases/$(database)/documents/users/$(userId)).data.role;
+    }
+    
+    function isManagerOrAdmin() {
+      let userRole = getUserRole(request.auth.uid);
+      return userRole == 'manager' || userRole == 'admin';
+    }
+    
+    function isAdmin() {
+       return getUserRole(request.auth.uid) == 'admin';
+    }
+
+    // Default deny all
     match /{document=**} {
       allow read, write: if false;
     }
+    
+    // Users Collection
+    match /users/{userId} {
+      // Any authenticated user can read user profiles (for names, roles, etc.)
+      allow read: if isAuthenticated();
+      
+      // A user can create their own user document
+      allow create: if request.auth.uid == userId;
+      
+      // An admin can update any user's role. A user can update their own displayName.
+      allow update: if (isAdmin() && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['role'])) || 
+                       (request.auth.uid == userId && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['displayName']));
+                       
+      // Only an admin can delete a user, but not themselves.
+      allow delete: if isAdmin() && request.auth.uid != userId;
+    }
+    
+    // Invitations Collection
+    match /invitations/{invitationId} {
+      // Only admins can create invitations
+      allow create: if isAdmin();
+      
+      // Invitations are read during signup process (no auth yet) or by admins.
+      // This is a simplification. A more secure pattern would use a callable function.
+      // For now, we allow read by admins. The signup logic is server-side.
+      allow read: if isAdmin();
+      
+      // Invitations are deleted by the system (server action) after use.
+      allow delete: if isAdmin();
+    }
+    
+    // Products, Locations, and Orders: Require manager or admin for CUD
+    match /products/{productId} {
+      allow read: if isAuthenticated();
+      allow write: if isManagerOrAdmin();
+    }
+    
+    match /locations/{locationId} {
+      allow read: if isAuthenticated();
+      allow write: if isManagerOrAdmin();
+    }
+    
+    match /orders/{orderId} {
+      allow read: if isAuthenticated();
+      allow write: if isManagerOrAdmin();
+    }
 
-    // Allow authenticated users to read and write to all collections.
-    // Security is handled by Firebase Auth and server-side checks in Next.js Server Actions.
-    match /{collection}/{docId} {
-      allow read, write: if request.auth != null;
+    // Movements
+    match /movements/{movementId} {
+       allow read: if isAuthenticated();
+       // Only server-side actions can create movements
+       allow create: if isManagerOrAdmin();
+       // Movements should be immutable
+       allow update, delete: if false;
+    }
+    
+    // Audit Logs & Export Logs
+    match /audit_logs/{logId} {
+      allow read: if isManagerOrAdmin();
+      // Only server-side actions can create logs
+      allow create: if isManagerOrAdmin();
+      // Logs should be immutable
+      allow update, delete: if false;
+    }
+
+    match /export_logs/{logId} {
+      allow read: if isManagerOrAdmin();
+      // Only server-side actions can create logs
+      allow create: if isManagerOrAdmin();
+      // Logs should be immutable
+      allow update, delete: if false;
     }
   }
 }

@@ -4,6 +4,14 @@ Here is a list of features based on the project requirements.
 
 ---
 
+## SECURITY HOTFIX SPRINT #1
+
+**Goal:** Remediate the critical security vulnerabilities identified in the recent security review.
+
+- [ ] **Implement Granular Firestore Security Rules:** Overhaul the current `firestore.rules` to enforce strict, server-side data validation and role-based access control for all collections. This is the most critical fix.
+
+---
+
 ## Sprint 9: Advanced Order Management & Deeper AI Integration
 
 **Goal:** Overhaul the order management system to include line items and integrate AI to assist in the order creation process.
