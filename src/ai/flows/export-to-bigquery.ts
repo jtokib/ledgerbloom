@@ -14,6 +14,13 @@ import {z} from 'genkit';
 import { getInventoryLevels } from '@/services/inventory';
 import { getMovements } from '@/services/movements';
 
+// To complete this feature, you would need to install the Google Cloud BigQuery client library:
+// npm install @google-cloud/bigquery
+//
+// Then, you would uncomment the following line:
+// import { BigQuery } from '@google-cloud/bigquery';
+
+
 const ExportToBigQueryInputSchema = z.object({
   datasetId: z.string().describe("The BigQuery dataset ID."),
   inventoryTableId: z.string().describe("The BigQuery table ID for inventory levels."),
@@ -50,23 +57,25 @@ const exportToBigQueryFlow = ai.defineFlow(
       console.log(`Fetched ${movements.length} movement records.`);
 
       // Step 2: In a real application, you would connect to the BigQuery API here.
-      // For now, we will just log the data that would be sent.
+      // This requires the '@google-cloud/bigquery' package to be installed.
       
       console.log('Simulating BigQuery export...');
       console.log('Inventory Levels to export:', JSON.stringify(inventoryLevels, null, 2));
       console.log('Movements to export:', JSON.stringify(movements, null, 2));
       
       // Step 3: Here you would use the BigQuery client library to insert the data.
+      //
       // Example:
       // const bigquery = new BigQuery();
       // await bigquery.dataset(input.datasetId).table(input.inventoryTableId).insert(inventoryLevels);
-      // await bigquery.dataset(input.datasetId).table(input.movementsTableId).insert(movements);
+      // await bigquery.dataset(input.datasetId).table(input.movementsTableId).insert(movements.map(m => ({...m, occurredAt: m.occurredAt.toISOString() })));
+      // Note: Dates should be converted to a BigQuery-compatible format like ISO strings.
 
       console.log('BigQuery export simulation successful.');
 
       return {
         success: true,
-        message: 'Data export to BigQuery completed successfully.',
+        message: 'Data export simulation to BigQuery completed successfully.',
       };
     } catch (error) {
       console.error('Error during BigQuery export flow:', error);

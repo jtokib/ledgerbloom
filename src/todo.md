@@ -12,11 +12,11 @@ Here is a list of features based on the project requirements.
     - [x] Create a new page and components for viewing audit logs.
     - [x] Integrate `createAuditLog` into all write operations (CUD) for products, locations, orders, and movements.
     - [x] Ensure all actions are attributed to a user or a service account.
+    - [x] Record and retain a detailed audit trail for data access and modifications.
     - [x] Track user actions, configuration changes, system events, and security-related events.
-    - [ ] Record and retain a detailed audit trail for data access and modifications.
-- [ ] **Data Export to BigQuery:** 
-    - [ ] Provide real-time or scheduled export of inventory and transactional data.
-    - [ ] Ensure audit trails of exports as a system function.
+- [x] **Data Export to BigQuery:** 
+    - [x] Provide real-time or scheduled export of inventory and transactional data.
+    - [x] Ensure audit trails of exports as a system function.
 
 ---
 
