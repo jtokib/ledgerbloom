@@ -125,6 +125,7 @@ export async function createProduct(userEmail: string, formData: FormData) {
     }
     
     const sku = formData.get('sku') as string;
+    const price = parseFloat(formData.get('price') as string);
     const variants: Variant[] = [];
     if(sku) {
         variants.push({
@@ -132,7 +133,8 @@ export async function createProduct(userEmail: string, formData: FormData) {
             sku: sku,
             packageSize: 'Default',
             uom: newProductData.baseUOM,
-            active: true
+            active: true,
+            price: isNaN(price) ? 0 : price
         });
     }
 
@@ -205,6 +207,7 @@ export async function updateProduct(userEmail: string, formData: FormData) {
         uom: v.uom,
         active: v.active,
         barcode: v.barcode || '',
+        price: typeof v.price === 'number' ? v.price : parseFloat(v.price || '0'),
       }));
 
       const dataToUpdate: Partial<Omit<Product, 'id'>> = {

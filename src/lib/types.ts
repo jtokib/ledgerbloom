@@ -47,6 +47,7 @@ export interface Variant {
   barcode?: string;
   uom: string;
   active: boolean;
+  price: number;
 }
 
 export interface Location {

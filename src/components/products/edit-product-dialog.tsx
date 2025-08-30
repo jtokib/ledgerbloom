@@ -34,7 +34,7 @@ export function EditProductDialog({ product }: { product: Product }) {
     }
   }, [open, product.variants]);
 
-  const handleVariantChange = (index: number, field: keyof Variant, value: string | boolean) => {
+  const handleVariantChange = (index: number, field: keyof Variant, value: string | boolean | number) => {
     const newVariants = [...variants];
     (newVariants[index] as any)[field] = value;
     setVariants(newVariants);
@@ -47,7 +47,8 @@ export function EditProductDialog({ product }: { product: Product }) {
       packageSize: '',
       uom: product.baseUOM,
       active: true,
-      barcode: ''
+      barcode: '',
+      price: 0
     }]);
   };
 
@@ -153,6 +154,10 @@ export function EditProductDialog({ product }: { product: Product }) {
                          <div>
                             <Label htmlFor={`uom-${index}`}>UOM</Label>
                             <Input id={`uom-${index}`} value={variant.uom} onChange={(e) => handleVariantChange(index, 'uom', e.target.value)} required />
+                        </div>
+                        <div>
+                            <Label htmlFor={`price-${index}`}>Price</Label>
+                            <Input id={`price-${index}`} type="number" step="0.01" value={variant.price} onChange={(e) => handleVariantChange(index, 'price', e.target.valueAsNumber)} required />
                         </div>
                         <div>
                             <Label htmlFor={`barcode-${index}`}>Barcode</Label>
