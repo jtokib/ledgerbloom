@@ -1,5 +1,6 @@
 
 'use client';
+import React from 'react';
 import Image from 'next/image';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle, CardFooter } from "@/components/ui/card";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
@@ -14,8 +15,10 @@ import type { Product } from "@/lib/types";
 import { getProducts } from "@/services/products";
 import { getMoreProducts } from '@/app/actions';
 import { Skeleton } from "@/components/ui/skeleton";
-import { Package } from 'lucide-react';
+import { Package, ChevronDown } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
+import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
+import { cn } from '@/lib/utils';
 
 
 export default function ProductsPage() {
@@ -24,6 +27,7 @@ export default function ProductsPage() {
   const [hasMore, setHasMore] = useState(true);
   const [isLoading, setIsLoading] = useState(true);
   const [isPending, startTransition] = useTransition();
+  const [openCollapsibles, setOpenCollapsibles] = useState<Set<string>>(new Set());
   const { toast } = useToast();
 
   useEffect(() => {
@@ -35,6 +39,18 @@ export default function ProductsPage() {
     }
     fetchData();
   }, []);
+
+  const toggleCollapsible = (id: string) => {
+    setOpenCollapsibles(prev => {
+        const newSet = new Set(prev);
+        if (newSet.has(id)) {
+            newSet.delete(id);
+        } else {
+            newSet.add(id);
+        }
+        return newSet;
+    });
+  }
 
   const loadMoreProducts = async () => {
     if (!hasMore || isPending) return;
@@ -84,6 +100,7 @@ export default function ProductsPage() {
         <Table>
           <TableHeader>
             <TableRow>
+              <TableHead className="w-[50px]"></TableHead>
               <TableHead className="w-[80px]">Image</TableHead>
               <TableHead>Product Name</TableHead>
               <TableHead>Base UOM</TableHead>
@@ -94,35 +111,81 @@ export default function ProductsPage() {
           </TableHeader>
           <TableBody>
             {products.map(product => (
-              <TableRow key={product.id}>
-                <TableCell>
-                  {product.imageUrl ? (
-                    <Image
-                      src={product.imageUrl}
-                      alt={product.displayName}
-                      width={40}
-                      height={40}
-                      className="rounded-md object-cover"
-                    />
-                  ) : (
-                    <div className="w-10 h-10 bg-muted rounded-md flex items-center justify-center">
-                        <Package className="w-5 h-5 text-muted-foreground" />
-                    </div>
-                  )}
-                </TableCell>
-                <TableCell className="font-medium">{product.displayName}</TableCell>
-                <TableCell>{product.baseUOM}</TableCell>
-                <TableCell>{product.variants?.length ?? 0}</TableCell>
-                <TableCell>
-                  {product.active ? <Badge>Active</Badge> : <Badge variant="secondary">Archived</Badge>}
-                </TableCell>
-                 {showActions && (
-                    <TableCell className="text-right">
-                        <EditProductDialog product={product} />
-                        <DeleteProductDialog productId={product.id} />
+              <Collapsible asChild key={product.id} open={openCollapsibles.has(product.id)} onOpenChange={() => toggleCollapsible(product.id)}>
+                <>
+                  <TableRow>
+                     <TableCell>
+                      {product.variants && product.variants.length > 0 && (
+                        <CollapsibleTrigger asChild>
+                            <Button variant="ghost" size="icon">
+                                <ChevronDown className={cn("h-4 w-4 transition-transform", openCollapsibles.has(product.id) && "rotate-180")} />
+                            </Button>
+                        </CollapsibleTrigger>
+                      )}
                     </TableCell>
-                 )}
-              </TableRow>
+                    <TableCell>
+                      {product.imageUrl ? (
+                        <Image
+                          src={product.imageUrl}
+                          alt={product.displayName}
+                          width={40}
+                          height={40}
+                          className="rounded-md object-cover"
+                        />
+                      ) : (
+                        <div className="w-10 h-10 bg-muted rounded-md flex items-center justify-center">
+                            <Package className="w-5 h-5 text-muted-foreground" />
+                        </div>
+                      )}
+                    </TableCell>
+                    <TableCell className="font-medium">{product.displayName}</TableCell>
+                    <TableCell>{product.baseUOM}</TableCell>
+                    <TableCell>{product.variants?.length ?? 0}</TableCell>
+                    <TableCell>
+                      {product.active ? <Badge>Active</Badge> : <Badge variant="secondary">Archived</Badge>}
+                    </TableCell>
+                    {showActions && (
+                        <TableCell className="text-right">
+                            <EditProductDialog product={product} />
+                            <DeleteProductDialog productId={product.id} />
+                        </TableCell>
+                    )}
+                  </TableRow>
+                  <CollapsibleContent asChild>
+                     <TableRow>
+                        <TableCell colSpan={showActions ? 7 : 6} className="p-0">
+                           <div className="p-4 bg-muted/50">
+                               <h4 className="font-semibold text-sm mb-2 ml-2">Variants</h4>
+                                <Table>
+                                    <TableHeader>
+                                        <TableRow>
+                                            <TableHead>SKU</TableHead>
+                                            <TableHead>Package Size</TableHead>
+                                            <TableHead>UOM</TableHead>
+                                            <TableHead>Barcode</TableHead>
+                                            <TableHead>Status</TableHead>
+                                        </TableRow>
+                                    </TableHeader>
+                                    <TableBody>
+                                        {product.variants?.map(variant => (
+                                            <TableRow key={variant.id}>
+                                                <TableCell className="font-mono text-xs">{variant.sku}</TableCell>
+                                                <TableCell>{variant.packageSize}</TableCell>
+                                                <TableCell>{variant.uom}</TableCell>
+                                                <TableCell className="font-mono text-xs">{variant.barcode || 'N/A'}</TableCell>
+                                                <TableCell>
+                                                    {variant.active ? <Badge variant="outline">Active</Badge> : <Badge variant="secondary">Inactive</Badge>}
+                                                </TableCell>
+                                            </TableRow>
+                                        ))}
+                                    </TableBody>
+                                </Table>
+                           </div>
+                        </TableCell>
+                     </TableRow>
+                  </CollapsibleContent>
+                </>
+              </Collapsible>
             ))}
           </TableBody>
         </Table>
@@ -137,5 +200,3 @@ export default function ProductsPage() {
     </Card>
   );
 }
-
-    
