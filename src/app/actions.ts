@@ -16,7 +16,7 @@ import { app, db, storage } from '@/lib/firebase';
 import { updateProfile } from 'firebase/auth';
 import { collection, addDoc, doc, updateDoc, deleteDoc, Timestamp, getDoc } from 'firebase/firestore';
 import { ref, uploadBytes, getDownloadURL } from 'firebase/storage';
-import type { Product, Location, InventoryMovement, Order, Variant, User, FulfillmentData } from '@/lib/types';
+import type { Product, Location, InventoryMovement, Order, Variant, User, FulfillmentData, OrderItem } from '@/lib/types';
 import { getOrder as getOrderFromDb } from '@/services/orders';
 import { getLocations as getLocationsFromDb } from '@/services/locations';
 import { getProducts as getProductsFromDb } from '@/services/products';
@@ -414,13 +414,15 @@ export async function createMovement(userEmail: string, formData: FormData) {
 
 export async function createOrder(userEmail: string, formData: FormData) {
   try {
-    const newOrderData = {
+    const items = JSON.parse(formData.get('items') as string) as OrderItem[];
+    const totalValue = items.reduce((acc, item) => acc + (item.price * item.quantity), 0);
+
+    const newOrderData: Omit<Order, 'id'> = {
       customerName: formData.get('customerName') as string,
       status: 'pending' as Order['status'],
       createdAt: new Date(),
-      // In a real app, you'd process items from the form
-      items: [], 
-      totalValue: 0,
+      items: items, 
+      totalValue: totalValue,
       orderNumber: `ORD-${Date.now()}`
     };
 
@@ -450,14 +452,23 @@ export async function updateOrder(userEmail: string, formData: FormData) {
     try {
       const orderId = formData.get('id') as string;
       const status = formData.get('status') as Order['status'];
+      const items = JSON.parse(formData.get('items') as string) as OrderItem[];
+      const customerName = formData.get('customerName') as string;
+
+      const totalValue = items.reduce((acc, item) => acc + (item.price * item.quantity), 0);
       
       const orderRef = doc(db, 'orders', orderId);
-      await updateDoc(orderRef, { status });
+      await updateDoc(orderRef, { 
+          status,
+          items,
+          customerName,
+          totalValue
+      });
 
       // If order is shipped, create inventory movements
       if (status === 'shipped') {
         const order = await getOrderFromDb(orderId);
-        const { locations } = await getLocationsFromDb(); // Use paginated version just to get some locations
+        const { locations } = await getLocationsFromDb(); 
         const warehouse = locations.find(l => l.type === 'warehouse');
         
         if (order && warehouse) {
@@ -472,9 +483,11 @@ export async function updateOrder(userEmail: string, formData: FormData) {
                 };
                 
                 const movementsCol = collection(db, 'movements');
-                // We need to figure out the UOM for the product
-                // For now, let's assume 'each'
-                await addDoc(movementsCol, {...movementData, uom: 'each', occurredAt: new Date()});
+                const { products } = await getProductsFromDb();
+                const product = products.find(p => p.variants.some(v => v.sku === item.sku));
+                const uom = product?.baseUOM || 'each';
+
+                await addDoc(movementsCol, {...movementData, uom: uom, occurredAt: new Date()});
             }
              await createAuditLog({
                 user: 'system',
@@ -494,7 +507,7 @@ export async function updateOrder(userEmail: string, formData: FormData) {
         details: {
             entityType: 'order',
             entityId: orderId,
-            message: `Updated order status to ${status}`
+            message: `Updated order ${orderId}. Status: ${status}, Items: ${items.length}`
         }
       });
 

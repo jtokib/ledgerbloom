@@ -80,6 +80,7 @@ export interface InventoryLevel {
 }
 
 export interface OrderItem {
+    variantId: string;
     sku: string;
     quantity: number;
     name: string;

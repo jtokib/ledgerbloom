@@ -1,6 +1,6 @@
 
 'use client';
-import { useState } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import { Button } from '@/components/ui/button';
 import {
   Dialog,
@@ -16,14 +16,79 @@ import { Label } from '@/components/ui/label';
 import { useToast } from '@/hooks/use-toast';
 import { createOrder } from '@/app/actions';
 import { useUser } from 'reactfire';
-
-// NOTE: This is a simplified version. A real implementation would
-// involve adding line items, selecting products, etc.
+import type { OrderItem, Product } from '@/lib/types';
+import { getProducts } from '@/services/products';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
+import { Trash2 } from 'lucide-react';
 
 export function AddOrderDialog() {
   const [open, setOpen] = useState(false);
+  const [customerName, setCustomerName] = useState('');
+  const [items, setItems] = useState<OrderItem[]>([]);
+  const [products, setProducts] = useState<Product[]>([]);
+  const [isLoading, setIsLoading] = useState(false);
+  const [selectedVariantId, setSelectedVariantId] = useState('');
+  const [quantity, setQuantity] = useState(1);
+
   const { toast } = useToast();
   const { data: user } = useUser();
+
+  useEffect(() => {
+    if (open) {
+      async function fetchProducts() {
+        setIsLoading(true);
+        const { products } = await getProducts({ limit: 1000 });
+        setProducts(products);
+        setIsLoading(false);
+      }
+      fetchProducts();
+    } else {
+        // Reset state on close
+        setCustomerName('');
+        setItems([]);
+        setSelectedVariantId('');
+        setQuantity(1);
+    }
+  }, [open]);
+
+  const allVariants = useMemo(() => {
+    return products.flatMap(p => p.variants.map(v => ({...v, productName: p.displayName})));
+  }, [products]);
+
+  const handleAddItem = () => {
+    const variant = allVariants.find(v => v.id === selectedVariantId);
+    if (!variant || quantity <= 0) {
+        toast({ variant: 'destructive', title: 'Invalid Item', description: 'Please select a valid product and quantity.' });
+        return;
+    }
+    // Check if item already exists
+    const existingItemIndex = items.findIndex(item => item.variantId === variant.id);
+    if (existingItemIndex > -1) {
+        const newItems = [...items];
+        newItems[existingItemIndex].quantity += quantity;
+        setItems(newItems);
+    } else {
+        setItems([...items, {
+            variantId: variant.id,
+            sku: variant.sku,
+            name: `${variant.productName} (${variant.packageSize})`,
+            price: variant.price,
+            quantity: quantity,
+        }]);
+    }
+    // Reset inputs
+    setSelectedVariantId('');
+    setQuantity(1);
+  };
+  
+  const removeItem = (variantId: string) => {
+    setItems(items.filter(item => item.variantId !== variantId));
+  };
+
+  const totalValue = useMemo(() => {
+    return items.reduce((acc, item) => acc + (item.price * item.quantity), 0);
+  }, [items]);
 
   async function handleSubmit(event: React.FormEvent<HTMLFormElement>) {
     event.preventDefault();
@@ -31,7 +96,19 @@ export function AddOrderDialog() {
         toast({ variant: 'destructive', title: 'Error', description: 'You must be logged in to create an order.' });
         return;
     }
-    const formData = new FormData(event.currentTarget);
+    if (!customerName) {
+        toast({ variant: 'destructive', title: 'Error', description: 'Customer name is required.' });
+        return;
+    }
+     if (items.length === 0) {
+        toast({ variant: 'destructive', title: 'Error', description: 'Order must have at least one item.' });
+        return;
+    }
+
+    const formData = new FormData();
+    formData.append('customerName', customerName);
+    formData.append('items', JSON.stringify(items));
+    
     const result = await createOrder(user.email, formData);
 
     if (result.success) {
@@ -51,12 +128,12 @@ export function AddOrderDialog() {
       <DialogTrigger asChild>
         <Button>Create Order</Button>
       </DialogTrigger>
-      <DialogContent className="sm:max-w-[425px]">
+      <DialogContent className="sm:max-w-2xl">
         <form onSubmit={handleSubmit}>
           <DialogHeader>
             <DialogTitle>Create Order</DialogTitle>
             <DialogDescription>
-              Create a new customer order. Line items can be added later.
+              Build a new customer order by adding products and quantities.
             </DialogDescription>
           </DialogHeader>
           <div className="grid gap-4 py-4">
@@ -68,10 +145,72 @@ export function AddOrderDialog() {
                 id="customerName"
                 name="customerName"
                 className="col-span-3"
+                value={customerName}
+                onChange={e => setCustomerName(e.target.value)}
                 required
               />
             </div>
-            {/* Add line item management UI here in a real app */}
+            
+            <div className="p-4 border rounded-lg space-y-4">
+                <h4 className="font-medium">Add Line Item</h4>
+                <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+                    <Select value={selectedVariantId} onValueChange={setSelectedVariantId} disabled={isLoading}>
+                        <SelectTrigger>
+                            <SelectValue placeholder="Select a product..." />
+                        </SelectTrigger>
+                        <SelectContent>
+                            {allVariants.map(v => (
+                                <SelectItem key={v.id} value={v.id}>
+                                    {v.productName} ({v.packageSize}) - ${v.price.toFixed(2)}
+                                </SelectItem>
+                            ))}
+                        </SelectContent>
+                    </Select>
+                    <Input
+                        type="number"
+                        placeholder="Qty"
+                        value={quantity}
+                        onChange={e => setQuantity(parseInt(e.target.value, 10))}
+                        min="1"
+                    />
+                    <Button type="button" onClick={handleAddItem} disabled={!selectedVariantId || quantity <= 0}>Add Item</Button>
+                </div>
+            </div>
+
+            {items.length > 0 && (
+                <div className="space-y-2">
+                    <Label>Order Items</Label>
+                    <Table>
+                        <TableHeader>
+                            <TableRow>
+                                <TableHead>Product</TableHead>
+                                <TableHead className="text-right">Qty</TableHead>
+                                <TableHead className="text-right">Unit Price</TableHead>
+                                <TableHead className="text-right">Subtotal</TableHead>
+                                <TableHead className="w-[50px]"></TableHead>
+                            </TableRow>
+                        </TableHeader>
+                        <TableBody>
+                            {items.map(item => (
+                                <TableRow key={item.variantId}>
+                                    <TableCell>{item.name}</TableCell>
+                                    <TableCell className="text-right">{item.quantity}</TableCell>
+                                    <TableCell className="text-right">${item.price.toFixed(2)}</TableCell>
+                                    <TableCell className="text-right">${(item.price * item.quantity).toFixed(2)}</TableCell>
+                                    <TableCell>
+                                        <Button variant="ghost" size="icon" onClick={() => removeItem(item.variantId)}>
+                                            <Trash2 className="h-4 w-4 text-destructive" />
+                                        </Button>
+                                    </TableCell>
+                                </TableRow>
+                            ))}
+                        </TableBody>
+                    </Table>
+                     <div className="text-right font-bold text-lg">
+                        Total: ${totalValue.toFixed(2)}
+                    </div>
+                </div>
+            )}
           </div>
           <DialogFooter>
             <Button type="submit">Save Order</Button>
