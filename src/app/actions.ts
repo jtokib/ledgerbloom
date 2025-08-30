@@ -5,6 +5,8 @@ import { getInventoryOptimizationSuggestions } from '@/ai/flows/inventory-optimi
 import type { InventoryOptimizationSuggestionsInput } from '@/ai/flows/inventory-optimization-suggestions';
 import { exportToBigQuery as exportToBigQueryFlow } from '@/ai/flows/export-to-bigquery';
 import type { ExportToBigQueryInput } from '@/ai/flows/export-to-bigquery';
+import { suggestOrderItems } from '@/ai/flows/suggest-order-items';
+import type { SuggestOrderItemsInput } from '@/ai/flows/suggest-order-items';
 import { createExportLog } from '@/services/exports';
 import { createAuditLog } from '@/services/audit';
 import { createUser as createUserInDb, updateUser as updateUserInDb, deleteUser as deleteUserInDb } from '@/services/users';
@@ -72,6 +74,16 @@ export async function generateSuggestions(input: InventoryOptimizationSuggestion
   } catch (error) {
     console.error(error);
     return { success: false, error: 'Failed to generate suggestions. Please try again.' };
+  }
+}
+
+export async function suggestItemsForOrder(input: SuggestOrderItemsInput) {
+  try {
+    const result = await suggestOrderItems(input);
+    return { success: true, items: result.items };
+  } catch (error) {
+    console.error(error);
+    return { success: false, error: 'Failed to suggest items. Please try again.' };
   }
 }
 

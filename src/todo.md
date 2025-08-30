@@ -8,7 +8,7 @@ Here is a list of features based on the project requirements.
 
 **Goal:** Remediate the critical security vulnerabilities identified in the recent security review.
 
-- [ ] **Implement Granular Firestore Security Rules:** Overhaul the current `firestore.rules` to enforce strict, server-side data validation and role-based access control for all collections. This is the most critical fix.
+- [x] **Implement Granular Firestore Security Rules:** Overhaul the current `firestore.rules` to enforce strict, server-side data validation and role-based access control for all collections. This is the most critical fix.
 
 ---
 
@@ -17,10 +17,10 @@ Here is a list of features based on the project requirements.
 **Goal:** Overhaul the order management system to include line items and integrate AI to assist in the order creation process.
 
 *   **Advanced Order Creation:**
-    *   [ ] **Add Line Item Management:** Enhance the "Create Order" and "Edit Order" dialogs to allow users to add, edit, and remove line items (products and quantities).
-    *   [ ] **Update Order Value Calculation:** Automatically calculate the total value of an order based on its line items. This will require adding a `price` field to the `Product` or `Variant` models.
+    *   [x] **Add Line Item Management:** Enhance the "Create Order" and "Edit Order" dialogs to allow users to add, edit, and remove line items (products and quantities).
+    *   [x] **Update Order Value Calculation:** Automatically calculate the total value of an order based on its line items. This will require adding a `price` field to the `Product` or `Variant` models.
 *   **AI-Assisted Order Entry:**
-    *   [ ] **Create a `suggestOrderItems` Flow:** Build a new Genkit flow that takes a natural language description (e.g., "a dozen roses and a small box of chocolates") and returns a structured list of order items (SKUs and quantities) based on the available products.
+    *   [x] **Create a `suggestOrderItems` Flow:** Build a new Genkit flow that takes a natural language description (e.g., "a dozen roses and a small box of chocolates") and returns a structured list of order items (SKUs and quantities) based on the available products.
     *   [ ] **Integrate AI into Order Dialog:** Add a feature to the "Create Order" dialog that allows users to generate line items automatically from a text description using the new AI flow.
 
 
@@ -73,7 +73,7 @@ Here is a list of features based on the project requirements.
     - [x] **Inventory Level Calculation:** Automatically calculated inventory levels from movements.
 
 - **Sprint 1: Initial Setup**
-    - [x] **Initial UI for Core Features:** Implemented basic pages for Inventory, Products, and Locations.
-    - [x] **AI-Driven Insights:** Implemented the initial AI insights page.
-    - [x] **Product & Location Management (C):** Added `Create` functionality for products and locations.
-    - [x] **Mock Data Services:** Established initial data services.
+    - [x] Initial UI for Core Features (Inventory, Products, and Locations).
+    - [x] Implemented AI insights page with Genkit flow.
+    - [x] Added `Create` functionality for products and locations.
+    - [x] Established mock data services for `READ` operations.
