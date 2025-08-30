@@ -50,6 +50,7 @@ export function AddLocationDialog() {
     defaultValues: {
         name: '',
         address: '',
+        type: undefined,
         active: true,
     }
   });
