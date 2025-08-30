@@ -21,7 +21,7 @@ Here is a list of features based on the project requirements.
     *   [x] **Update Order Value Calculation:** Automatically calculate the total value of an order based on its line items. This will require adding a `price` field to the `Product` or `Variant` models.
 *   **AI-Assisted Order Entry:**
     *   [x] **Create a `suggestOrderItems` Flow:** Build a new Genkit flow that takes a natural language description (e.g., "a dozen roses and a small box of chocolates") and returns a structured list of order items (SKUs and quantities) based on the available products.
-    *   [ ] **Integrate AI into Order Dialog:** Add a feature to the "Create Order" dialog that allows users to generate line items automatically from a text description using the new AI flow.
+    *   [x] **Integrate AI into Order Dialog:** Add a feature to the "Create Order" dialog that allows users to generate line items automatically from a text description using the new AI flow.
 
 
 ---
