@@ -10,7 +10,7 @@ Here is a list of features based on the project requirements.
 **Goal:** Enable administrators to manage team members and their roles directly within the application.
 
 - **User Invitations:**
-    - [ ] **Implement Invitation Flow:** Create a system for admins to invite new users to the organization via email. This will likely require a new `invitations` collection in Firestore to track pending invites.
+    - [x] **Implement Invitation Flow:** Create a system for admins to invite new users to the organization via email. This will likely require a new `invitations` collection in Firestore to track pending invites.
     - [x] **Build Invitation UI:** Enable the "Invite Member" button on the settings page and create a dialog for sending invitations.
 - **Role Management:**
     - [x] **Edit User Roles:** Allow admins to change the role of existing members (e.g., from 'viewer' to 'manager').
@@ -94,5 +94,7 @@ Here is a list of features based on the project requirements.
 
 
 
+
+    
 
     

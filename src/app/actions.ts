@@ -8,7 +8,7 @@ import type { ExportToBigQueryInput } from '@/ai/flows/export-to-bigquery';
 import { createExportLog } from '@/services/exports';
 import { createAuditLog } from '@/services/audit';
 import { createUser as createUserInDb, updateUser as updateUserInDb, deleteUser as deleteUserInDb } from '@/services/users';
-import { createInvitation as createInvitationInDb } from '@/services/invitations';
+import { createInvitation as createInvitationInDb, getInvitationByEmail, deleteInvitation as deleteInvitationInDb } from '@/services/invitations';
 import { revalidatePath } from 'next/cache';
 import { getAuth } from 'firebase/auth';
 import { app, db, storage } from '@/lib/firebase';
@@ -76,12 +76,20 @@ export async function generateSuggestions(input: InventoryOptimizationSuggestion
 
 export async function createUser(userId: string, name: string, email: string) {
   try {
+    const invitation = await getInvitationByEmail(email);
+    const role = invitation ? invitation.role : 'viewer';
+
     await createUserInDb({
       id: userId,
       displayName: name,
       email: email,
-      role: 'viewer', // Default role for new users
+      role: role,
     });
+
+    if (invitation) {
+        await deleteInvitationInDb(invitation.id);
+    }
+    
     return { success: true };
   } catch (error) {
     console.error(error);
@@ -607,4 +615,6 @@ export async function deleteUser(userEmail: string, targetUserId: string, target
         return { success: false, error: `Failed to delete user: ${message}` };
     }
 }
+    
+
     
