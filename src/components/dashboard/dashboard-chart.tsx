@@ -16,59 +16,65 @@ import {
   ChartTooltipContent,
 } from '@/components/ui/chart';
 import type { ChartConfig } from '@/components/ui/chart';
-
-
-const chartData = [
-  { month: 'January', desktop: 186, mobile: 80 },
-  { month: 'February', desktop: 305, mobile: 200 },
-  { month: 'March', desktop: 237, mobile: 120 },
-  { month: 'April', desktop: 73, mobile: 190 },
-  { month: 'May', desktop: 209, mobile: 130 },
-  { month: 'June', desktop: 214, mobile: 140 },
-];
+import { format, subDays } from 'date-fns';
 
 const chartConfig = {
-  desktop: {
+  sales: {
     label: 'Sales',
     color: 'hsl(var(--chart-1))',
   },
-  mobile: {
+  purchases: {
     label: 'Purchases',
     color: 'hsl(var(--chart-2))',
   },
 } satisfies ChartConfig;
 
-export function DashboardChart() {
+type DashboardChartProps = {
+  data: {
+    date: string;
+    sales: number;
+    purchases: number;
+  }[];
+};
+
+export function DashboardChart({ data }: DashboardChartProps) {
+    const today = new Date();
+    const thirtyDaysAgo = subDays(today, 29);
+
     return (
         <Card>
         <CardHeader>
           <CardTitle>Sales & Purchases Overview</CardTitle>
-          <CardDescription>January - June 2024</CardDescription>
+          <CardDescription>{format(thirtyDaysAgo, 'MMMM d')} - {format(today, 'MMMM d, yyyy')}</CardDescription>
         </CardHeader>
         <CardContent>
           <ChartContainer config={chartConfig} className="min-h-[200px] w-full">
-            <BarChart accessibilityLayer data={chartData}>
+            <BarChart accessibilityLayer data={data}>
               <CartesianGrid vertical={false} />
               <XAxis
-                dataKey="month"
+                dataKey="date"
                 tickLine={false}
                 tickMargin={10}
                 axisLine={false}
-                tickFormatter={(value) => value.slice(0, 3)}
+                tickFormatter={(value) => {
+                    const date = new Date(value);
+                    // Add a check to prevent invalid date formatting
+                    return date.getTime() ? format(date, "d") : value;
+                }}
               />
               <ChartTooltip
                 cursor={false}
                 content={<ChartTooltipContent indicator="dashed" />}
               />
-              <Bar dataKey="desktop" fill="var(--color-desktop)" radius={4} />
-              <Bar dataKey="mobile" fill="var(--color-mobile)" radius={4} />
+              <Bar dataKey="sales" fill="var(--color-sales)" radius={4} />
+              <Bar dataKey="purchases" fill="var(--color-purchases)" radius={4} />
             </BarChart>
           </ChartContainer>
         </CardContent>
         <CardFooter>
           <div className="flex w-full items-start gap-2 text-sm">
             <div className="text-muted-foreground">
-              Showing total sales and purchases for the last 6 months.
+              Showing total units sold and purchased for the last 30 days.
             </div>
           </div>
         </CardFooter>
