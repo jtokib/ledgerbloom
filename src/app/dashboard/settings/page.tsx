@@ -17,14 +17,17 @@ import type { User as AppUser } from "@/lib/types";
 import { Skeleton } from "@/components/ui/skeleton";
 import { useRole } from "@/hooks/use-role";
 import { InviteMemberDialog } from "@/components/members/invite-member-dialog";
+import { EditMemberDialog } from "@/components/members/edit-member-dialog";
 
 function MembersTable() {
   const [members, setMembers] = useState<AppUser[]>([]);
   const [isLoading, setIsLoading] = useState(true);
-  const { role: currentUserRole } = useRole();
+  const { role: currentUserRole, isLoading: isRoleLoading } = useRole();
+  const { data: currentUser } = useUser();
 
   useEffect(() => {
     async function fetchMembers() {
+      setIsLoading(true);
       try {
         const userList = await getUsers();
         setMembers(userList);
@@ -37,7 +40,9 @@ function MembersTable() {
     fetchMembers();
   }, []);
 
-  if (isLoading) {
+  const canManageMembers = currentUserRole === 'admin';
+
+  if (isLoading || isRoleLoading) {
      return (
       <div className="space-y-2">
         <Skeleton className="h-12 w-full" />
@@ -54,7 +59,7 @@ function MembersTable() {
               <CardTitle>Members</CardTitle>
               <CardDescription>Manage your organization's members and their roles.</CardDescription>
             </div>
-            <InviteMemberDialog disabled={currentUserRole !== 'admin'} />
+            <InviteMemberDialog disabled={!canManageMembers} />
           </CardHeader>
           <CardContent>
             <Table>
@@ -63,12 +68,13 @@ function MembersTable() {
                   <TableHead>Name</TableHead>
                   <TableHead>Email</TableHead>
                   <TableHead>Role</TableHead>
+                  {canManageMembers && <TableHead className="text-right">Actions</TableHead>}
                 </TableRow>
               </TableHeader>
               <TableBody>
                 {members.length === 0 ? (
                    <TableRow>
-                      <TableCell colSpan={3} className="h-24 text-center">
+                      <TableCell colSpan={canManageMembers ? 4 : 3} className="h-24 text-center">
                           No members found.
                       </TableCell>
                   </TableRow>
@@ -78,6 +84,11 @@ function MembersTable() {
                       <TableCell className="font-medium">{member.displayName ?? 'N/A'}</TableCell>
                       <TableCell>{member.email}</TableCell>
                       <TableCell><Badge variant="outline" className="capitalize">{member.role}</Badge></TableCell>
+                      {canManageMembers && (
+                        <TableCell className="text-right">
+                          <EditMemberDialog member={member} disabled={member.id === currentUser?.uid} />
+                        </TableCell>
+                      )}
                     </TableRow>
                   ))
                 )}

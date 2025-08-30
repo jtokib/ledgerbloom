@@ -2,7 +2,7 @@
 'use server';
 import type { User } from '@/lib/types';
 import { db } from '@/lib/firebase';
-import { doc, setDoc, getDoc, collection, getDocs, query } from 'firebase/firestore';
+import { doc, setDoc, getDoc, collection, getDocs, query, updateDoc } from 'firebase/firestore';
 
 /**
  * A service to create a user document in Firestore.
@@ -18,6 +18,15 @@ export async function createUser(userData: User): Promise<User> {
     
     return userData;
 }
+
+/**
+ * A service to update a user document in Firestore.
+ */
+export async function updateUser(uid: string, data: Partial<User>): Promise<void> {
+    const userRef = doc(db, 'users', uid);
+    await updateDoc(userRef, data);
+}
+
 
 /**
  * A service to fetch a user document from Firestore.
