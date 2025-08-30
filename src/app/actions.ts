@@ -283,9 +283,8 @@ export async function updateProduct(userEmail: string, formData: FormData) {
   }
   
 
-export async function createLocation(data: Omit<Location, 'id' | 'active'> & { active: boolean | 'on' }) {
+export async function createLocation(userEmail: string, data: Omit<Location, 'id' | 'active'> & { active: boolean | 'on' }) {
     try {
-        const userEmail = await getCurrentUserEmail();
         const newLocationData: Omit<Location, 'id'> = {
             name: data.name,
             address: data.address,

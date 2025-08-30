@@ -102,5 +102,3 @@ export function InviteMemberDialog({ disabled }: InviteMemberDialogProps) {
     </Dialog>
   );
 }
-
-    

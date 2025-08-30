@@ -141,7 +141,7 @@ export function EditProductDialog({ product }: { product: Product }) {
               <Separator />
               <div className="space-y-6">
                 {variants.map((variant, index) => (
-                  <div key={variant.id} className="p-4 border rounded-lg space-y-4 relative">
+                  <div key={variant.id || index} className="p-4 border rounded-lg space-y-4 relative">
                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                         <div>
                             <Label htmlFor={`sku-${index}`}>SKU</Label>

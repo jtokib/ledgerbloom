@@ -12,7 +12,6 @@ import {
   DialogTrigger,
 } from '@/components/ui/dialog';
 import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
 import { Switch } from '@/components/ui/switch';
 import {
   Select,
@@ -27,11 +26,14 @@ import { z } from 'zod';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useForm } from 'react-hook-form';
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
+import { useUser } from 'reactfire';
 
 const locationSchema = z.object({
     name: z.string().min(2, { message: 'Name must be at least 2 characters.' }),
     address: z.string().optional(),
-    type: z.enum(['warehouse', 'store', 'supplier']),
+    type: z.enum(['warehouse', 'store', 'supplier'], {
+      required_error: "You need to select a location type.",
+    }),
     active: z.boolean().default(true),
 });
 
@@ -41,20 +43,24 @@ export function AddLocationDialog() {
   const [open, setOpen] = useState(false);
   const [isPending, startTransition] = useTransition();
   const { toast } = useToast();
+  const { data: user } = useUser();
 
   const form = useForm<LocationFormValues>({
     resolver: zodResolver(locationSchema),
     defaultValues: {
         name: '',
         address: '',
-        type: undefined,
         active: true,
     }
   });
 
   async function onSubmit(data: LocationFormValues) {
+    if (!user?.email) {
+        toast({ variant: 'destructive', title: 'Error', description: 'You must be logged in to create a location.' });
+        return;
+    }
     startTransition(async () => {
-        const result = await createLocation(data);
+        const result = await createLocation(user.email, data);
         if (result.success) {
             toast({ title: 'Success', description: 'Location created successfully.' });
             setOpen(false);
@@ -161,5 +167,3 @@ export function AddLocationDialog() {
     </Dialog>
   );
 }
-
-    

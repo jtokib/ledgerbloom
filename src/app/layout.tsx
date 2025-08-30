@@ -6,6 +6,20 @@ import { Toaster } from "@/components/ui/toaster"
 import { FirebaseAppProvider, AuthProvider } from 'reactfire';
 import { getAuth } from 'firebase/auth';
 import { app } from '@/lib/firebase';
+import { Playfair_Display, PT_Sans } from 'next/font/google';
+
+const playfairDisplay = Playfair_Display({
+  subsets: ['latin'],
+  variable: '--font-playfair-display',
+  display: 'swap',
+});
+
+const ptSans = PT_Sans({
+  subsets: ['latin'],
+  weight: ['400', '700'],
+  variable: '--font-pt-sans',
+  display: 'swap',
+});
 
 export default function RootLayout({
   children,
@@ -13,12 +27,8 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="en" suppressHydrationWarning>
-      <head>
-        <link rel="preconnect" href="https://fonts.googleapis.com" />
-        <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous" />
-        <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;700&family=PT+Sans:wght@400;700&display=swap" rel="stylesheet" />
-      </head>
+    <html lang="en" suppressHydrationWarning className={`${playfairDisplay.variable} ${ptSans.variable}`}>
+      <head />
       <body className="font-body antialiased">
         <FirebaseAppProvider firebaseApp={app}>
           <AuthProvider sdk={getAuth(app)}>

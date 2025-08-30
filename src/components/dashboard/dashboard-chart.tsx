@@ -16,7 +16,7 @@ import {
   ChartTooltipContent,
 } from '@/components/ui/chart';
 import type { ChartConfig } from '@/components/ui/chart';
-import { format, subDays } from 'date-fns';
+import { format, subDays, parse } from 'date-fns';
 
 const chartConfig = {
   sales: {
@@ -57,9 +57,8 @@ export function DashboardChart({ data }: DashboardChartProps) {
                 tickMargin={10}
                 axisLine={false}
                 tickFormatter={(value) => {
-                    const date = new Date(value);
-                    // Add a check to prevent invalid date formatting
-                    return date.getTime() ? format(date, "d") : value;
+                    const date = parse(value, 'MMM d', new Date());
+                    return isNaN(date.getTime()) ? value : format(date, 'd');
                 }}
               />
               <ChartTooltip
