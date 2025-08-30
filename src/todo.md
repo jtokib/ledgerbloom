@@ -1,24 +1,32 @@
-
 # LedgerBloom - Project TODO
 
 Here is a list of features based on the project requirements.
 
 ---
 
-## Sprint 8: Advanced AI & UI Refinements
+## Sprint 9: Advanced Order Management & Deeper AI Integration
 
-**Goal:** Enhance the AI capabilities to provide proactive insights based on live data and refine the user interface with advanced search and filtering.
+**Goal:** Overhaul the order management system to include line items and integrate AI to assist in the order creation process.
 
-*   **Live AI Insights:**
-    *   [x] **Integrate Live Data:** Modify the AI Insights page to use live inventory and movement data directly from Firestore instead of requiring the user to paste it.
-    *   [x] **Create a `getLiveInventoryData` Tool:** Develop a Genkit tool that can be used by flows to fetch and summarize the current inventory state, making it easier for the AI to reason about the data.
-*   **UI Enhancements:**
-    *   [x] **Implement Search/Filtering:** Add search and filtering capabilities to the main data tables (Products, Locations, Orders, Movements) to allow users to find information more quickly.
-    - [x] **Form Validation:** Introduce more robust client-side form validation using a library like `zod` to provide immediate feedback to users and improve data integrity.
+*   **Advanced Order Creation:**
+    *   [ ] **Add Line Item Management:** Enhance the "Create Order" and "Edit Order" dialogs to allow users to add, edit, and remove line items (products and quantities).
+    *   [ ] **Update Order Value Calculation:** Automatically calculate the total value of an order based on its line items. This will require adding a `price` field to the `Product` or `Variant` models.
+*   **AI-Assisted Order Entry:**
+    *   [ ] **Create a `suggestOrderItems` Flow:** Build a new Genkit flow that takes a natural language description (e.g., "a dozen roses and a small box of chocolates") and returns a structured list of order items (SKUs and quantities) based on the available products.
+    *   [ ] **Integrate AI into Order Dialog:** Add a feature to the "Create Order" dialog that allows users to generate line items automatically from a text description using the new AI flow.
+
 
 ---
 
 ## Completed Tasks
+
+- **Sprint 8: Advanced AI & UI Refinements**
+    - [x] **Live AI Insights:**
+        - [x] **Integrate Live Data:** Modified the AI Insights page to use live inventory and movement data directly from Firestore instead of requiring the user to paste it.
+        - [x] **Create a `getLiveInventoryData` Tool:** Developed a Genkit tool that can be used by flows to fetch and summarize the current inventory state, making it easier for the AI to reason about the data.
+    - [x] **UI Enhancements:**
+        - [x] **Implement Search/Filtering:** Added search and filtering capabilities to the main data tables (Products, Locations, Orders, Movements) to allow users to find information more quickly.
+        - [x] **Form Validation:** Introduced more robust client-side form validation using a library like `zod` to provide immediate feedback to users and improve data integrity.
 
 - **Sprint 7: User Management & Collaboration**
     - [x] **Implement Invitation Flow:** Created a system for admins to invite new users to the organization via email.
@@ -61,6 +69,3 @@ Here is a list of features based on the project requirements.
     - [x] **AI-Driven Insights:** Implemented the initial AI insights page.
     - [x] **Product & Location Management (C):** Added `Create` functionality for products and locations.
     - [x] **Mock Data Services:** Established initial data services.
-
-
-    
