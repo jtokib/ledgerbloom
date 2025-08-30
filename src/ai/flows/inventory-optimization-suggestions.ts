@@ -10,12 +10,34 @@
 
 import {ai} from '@/ai/genkit';
 import {z} from 'genkit';
+import { getInventoryLevels } from '@/services/inventory';
+import { getMovements } from '@/services/movements';
 
-const InventoryOptimizationSuggestionsInputSchema = z.object({
-  inventoryData: z
-    .string()
-    .describe("A string containing inventory data, including product SKUs, locations, quantities, and recent movement history."),
-});
+const getLiveInventoryData = ai.defineTool(
+  {
+    name: 'getLiveInventoryData',
+    description: 'Fetches current inventory levels and recent movement data from the database.',
+    inputSchema: z.undefined(),
+    outputSchema: z.string(),
+  },
+  async () => {
+    console.log('Fetching live inventory data...');
+    const [inventoryLevels, { movements }] = await Promise.all([
+      getInventoryLevels(),
+      getMovements({ limit: 100 }), // Get recent movements
+    ]);
+
+    const inventorySummary = `Current Inventory Levels:\n${JSON.stringify(inventoryLevels, null, 2)}`;
+    const movementSummary = `Recent Movements:\n${JSON.stringify(movements.map(m => ({...m, occurredAt: m.occurredAt.toISOString()})), null, 2)}`;
+    
+    const combinedData = `${inventorySummary}\n\n${movementSummary}`;
+    console.log('Live data fetched successfully.');
+    return combinedData;
+  }
+);
+
+
+const InventoryOptimizationSuggestionsInputSchema = z.object({});
 export type InventoryOptimizationSuggestionsInput = z.infer<typeof InventoryOptimizationSuggestionsInputSchema>;
 
 const InventoryOptimizationSuggestionsOutputSchema = z.object({
@@ -31,13 +53,22 @@ const prompt = ai.definePrompt({
   name: 'inventoryOptimizationSuggestionsPrompt',
   input: {schema: InventoryOptimizationSuggestionsInputSchema},
   output: {schema: InventoryOptimizationSuggestionsOutputSchema},
-  prompt: `You are an expert inventory management consultant. Analyze the following inventory data and provide specific, actionable suggestions for adjustments and optimization strategies.
+  tools: [getLiveInventoryData],
+  prompt: `You are an expert inventory management consultant. 
+  
+  Your primary task is to analyze the company's inventory data to provide specific, actionable suggestions for adjustments and optimization strategies.
 
-Inventory Data:
-{{{inventoryData}}}
+  First, call the 'getLiveInventoryData' tool to fetch the most up-to-date inventory levels and recent movement history.
 
-Consider factors such as product demand, storage costs, lead times, and potential obsolescence.
-Focus on clear, implementable steps that the user can take to improve their inventory efficiency and reduce waste.`,
+  Then, analyze the retrieved data. Consider factors such as:
+  - Products with very high or very low stock levels.
+  - Products that haven't moved recently (potential obsolescence).
+  - High-velocity items that may need reorder point adjustments.
+  - Negative stock levels, which indicate data entry errors or process issues.
+
+  Based on your analysis, generate a concise list of clear, implementable steps the user can take to improve their inventory efficiency, reduce costs, and prevent stockouts.
+  Present your suggestions in a clear, easy-to-read format.
+`,
 });
 
 const inventoryOptimizationSuggestionsFlow = ai.defineFlow(

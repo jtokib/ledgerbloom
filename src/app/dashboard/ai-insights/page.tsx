@@ -3,23 +3,11 @@
 import { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
-import { Label } from '@/components/ui/label';
-import { Textarea } from '@/components/ui/textarea';
 import { useToast } from '@/hooks/use-toast';
 import { generateSuggestions } from '@/app/actions';
 import { BrainCircuit, Sparkles } from 'lucide-react';
 
-const placeholderData = `SKU,Location,Quantity,LastMoved
-SKU-A1-L,Main Warehouse,1205,2023-10-26
-SKU-R2-S,Downtown Store,52,2023-10-28
-SKU-M3-M,Main Warehouse,780,2023-10-22
-SKU-T4-L,Eastside Warehouse,450,2023-09-15
-SKU-B5-S,Downtown Store,-10,2023-10-29
-SKU-A1-S,Main Warehouse,2500,2023-10-20
-SKU-R2-L,Eastside Warehouse,300,2023-08-01`;
-
 export default function AiInsightsPage() {
-  const [inventoryData, setInventoryData] = useState(placeholderData);
   const [suggestions, setSuggestions] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const { toast } = useToast();
@@ -27,7 +15,8 @@ export default function AiInsightsPage() {
   const handleGenerate = async () => {
     setIsLoading(true);
     setSuggestions('');
-    const result = await generateSuggestions({ inventoryData });
+    // Pass an empty object as input since the tool now fetches data.
+    const result = await generateSuggestions({});
     setIsLoading(false);
     if (result.success) {
       setSuggestions(result.suggestions ?? '');
@@ -46,24 +35,18 @@ export default function AiInsightsPage() {
         <CardHeader>
           <CardTitle>AI-Driven Inventory Insights</CardTitle>
           <CardDescription>
-            Paste your inventory data (e.g., from a CSV) to get AI-powered optimization suggestions.
+            Generate AI-powered optimization suggestions based on your live inventory and movement data.
           </CardDescription>
         </CardHeader>
         <CardContent>
-          <div className="grid gap-4">
-            <Label htmlFor="inventory-data">Inventory Data</Label>
-            <Textarea
-              id="inventory-data"
-              value={inventoryData}
-              onChange={(e) => setInventoryData(e.target.value)}
-              placeholder="Paste your inventory data here..."
-              className="min-h-[200px] font-code text-sm"
-            />
-          </div>
+          <p className="text-sm text-muted-foreground">
+            Click the button below to have our AI analyze your current inventory levels and recent transaction history. 
+            It will provide actionable insights to help you manage stock more effectively, reduce waste, and improve efficiency.
+          </p>
         </CardContent>
         <CardFooter>
           <Button onClick={handleGenerate} disabled={isLoading}>
-            {isLoading ? 'Generating...' : <> <Sparkles className="mr-2 h-4 w-4" /> Generate Suggestions</>}
+            {isLoading ? 'Analyzing Live Data...' : <> <Sparkles className="mr-2 h-4 w-4" /> Generate Suggestions</>}
           </Button>
         </CardFooter>
       </Card>
