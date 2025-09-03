@@ -1,4 +1,6 @@
 
+'use server';
+
 import * as admin from 'firebase-admin';
 
 // Configuration is still defined at the top level

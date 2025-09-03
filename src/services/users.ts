@@ -1,13 +1,14 @@
 
 'use server';
 import type { User } from '@/lib/types';
-import { db } from '@/lib/firebase';
+import { getDb } from '@/lib/firebase-admin';
 import { doc, setDoc, getDoc, collection, getDocs, query, updateDoc, deleteDoc } from 'firebase/firestore';
 
 /**
  * A service to create a user document in Firestore.
  */
 export async function createUser(userData: User): Promise<User> {
+    const db = getDb();
     const userRef = doc(db, 'users', userData.id);
     // Use setDoc with merge: true to avoid overwriting existing data if any
     await setDoc(userRef, {
@@ -24,6 +25,7 @@ export async function createUser(userData: User): Promise<User> {
  * A service to update a user document in Firestore.
  */
 export async function updateUser(uid: string, data: Partial<User>): Promise<void> {
+    const db = getDb();
     const userRef = doc(db, 'users', uid);
     await updateDoc(userRef, data);
 }
@@ -33,6 +35,7 @@ export async function updateUser(uid: string, data: Partial<User>): Promise<void
  * NOTE: This does NOT delete the user from Firebase Authentication.
  */
 export async function deleteUser(uid: string): Promise<void> {
+    const db = getDb();
     const userRef = doc(db, 'users', uid);
     await deleteDoc(userRef);
 }
@@ -42,6 +45,7 @@ export async function deleteUser(uid: string): Promise<void> {
  * A service to fetch a user document from Firestore.
  */
 export async function getUser(uid: string): Promise<User | null> {
+    const db = getDb();
     const userRef = doc(db, 'users', uid);
     const userSnap = await getDoc(userRef);
 
@@ -57,6 +61,7 @@ export async function getUser(uid: string): Promise<User | null> {
  * A service to fetch all user documents from Firestore.
  */
 export async function getUsers(): Promise<User[]> {
+    const db = getDb();
     const usersCol = collection(db, 'users');
     const q = query(usersCol);
     const usersSnapshot = await getDocs(q);
