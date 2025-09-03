@@ -2,25 +2,33 @@
 import { NextResponse } from 'next/server';
 import type { NextRequest } from 'next/server';
 
+// Force the middleware to run on the Node.js runtime.
+// This is required because 'firebase-admin' and its dependencies need Node.js APIs.
+export const runtime = 'nodejs';
+
 export function middleware(request: NextRequest) {
   const sessionCookie = request.cookies.get('session')?.value;
   const { pathname } = request.nextUrl;
 
-  // If trying to access protected routes without a session, redirect to login
+  // Redirect to login if trying to access dashboard without a session
   if (!sessionCookie && pathname.startsWith('/dashboard')) {
-    return NextResponse.redirect(new URL('/', request.url));
+    const loginUrl = new URL('/', request.url);
+    return NextResponse.redirect(loginUrl);
   }
 
-  // If session exists and trying to access login/signup, redirect to dashboard
+  // Redirect to dashboard if logged in and trying to access login page
   if (sessionCookie && (pathname === '/' || pathname.startsWith('/signup'))) {
-    return NextResponse.redirect(new URL('/dashboard', request.url));
+    const dashboardUrl = new URL('/dashboard', request.url);
+    return NextResponse.redirect(dashboardUrl);
   }
-  
-  // For dashboard routes, pass the session cookie in the Authorization header
-  // This allows server components to verify it
+
+  // For dashboard routes, pass the session cookie in the Authorization header.
+  // This allows server components to verify it.
   if (pathname.startsWith('/dashboard')) {
     const requestHeaders = new Headers(request.headers);
-    requestHeaders.set('Authorization', `Bearer ${sessionCookie}`);
+    if (sessionCookie) {
+      requestHeaders.set('Authorization', `Bearer ${sessionCookie}`);
+    }
     
     return NextResponse.next({
       request: {
@@ -29,11 +37,10 @@ export function middleware(request: NextRequest) {
     });
   }
 
-
   return NextResponse.next();
 }
 
-// See "Matching Paths" below to learn more
+// Config to specify which paths the middleware should run on.
 export const config = {
   matcher: [
     /*
