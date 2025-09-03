@@ -1,45 +1,35 @@
-
 'use server';
 
 import { getAuth } from '@/lib/firebase-admin';
 import { CustomClaims } from './claims';
-import { cookies, headers } from 'next/headers';
+import { headers } from 'next/headers';
+import type { DecodedIdToken } from 'firebase-admin/auth';
 
 /**
- * Extract Firebase ID token from request headers
+ * Extract Firebase ID token from request headers.
+ * This is the primary method for authenticating server-side requests.
+ * The token is expected to be set by the Next.js middleware.
  */
 async function getIdTokenFromHeaders(): Promise<string | null> {
-  const headersList = await headers();
-  const authorization = headersList.get('authorization');
+  const headersList = headers();
+  const authorization = headersList.get('Authorization');
   
   if (!authorization?.startsWith('Bearer ')) {
     return null;
   }
   
-  return authorization.slice(7);
+  return authorization.split('Bearer ')[1];
 }
 
 /**
- * Extract Firebase ID token from cookies (alternative method)
+ * Verify Firebase ID token and return decoded token with claims.
  */
-async function getIdTokenFromCookies(): Promise<string | null> {
-  const cookieStore = await cookies();
-  return cookieStore.get('firebase-token')?.value || null;
-}
-
-/**
- * Verify Firebase ID token and return decoded token with claims
- */
-export async function verifyToken(idToken: string) {
+export async function verifyToken(idToken: string): Promise<(DecodedIdToken & CustomClaims) | null> {
   const auth = getAuth();
   
   try {
     const decodedToken = await auth.verifyIdToken(idToken);
-    return {
-      uid: decodedToken.uid,
-      email: decodedToken.email,
-      claims: decodedToken as unknown as CustomClaims
-    };
+    return decodedToken as DecodedIdToken & CustomClaims;
   } catch (error) {
     console.error('Token verification failed:', error);
     return null;
@@ -47,18 +37,29 @@ export async function verifyToken(idToken: string) {
 }
 
 /**
- * Get authenticated user from request
+ * Get authenticated user from a server-side context (Server Component, Route Handler, or Server Action).
+ * This relies on the token being passed in the request headers by the middleware.
  */
 export async function getAuthenticatedUser() {
-  // Try to get token from headers first, then cookies
-  const idToken = await getIdTokenFromHeaders() || await getIdTokenFromCookies();
+  const idToken = await getIdTokenFromHeaders();
   
   if (!idToken) {
     return null;
   }
   
-  return await verifyToken(idToken);
+  const decodedToken = await verifyToken(idToken);
+  
+  if (!decodedToken) {
+    return null;
+  }
+
+  return {
+    uid: decodedToken.uid,
+    email: decodedToken.email,
+    claims: decodedToken,
+  };
 }
+
 
 /**
  * Middleware to check if user has required role
