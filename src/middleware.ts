@@ -28,19 +28,15 @@ export async function middleware(request: NextRequest) {
 
     // For dashboard routes, we need to pass the ID token to server components.
     // We do this by setting a request header.
-    if (pathname.startsWith('/dashboard')) {
-        const idToken = await getAuth().createCustomToken(decodedToken.uid, decodedToken);
-        const requestHeaders = new Headers(request.headers);
-        requestHeaders.set('Authorization', `Bearer ${idToken}`);
-        
-        return NextResponse.next({
-            request: {
-                headers: requestHeaders,
-            },
-        });
-    }
-
-    return NextResponse.next();
+    const requestHeaders = new Headers(request.headers);
+    // Re-using the session cookie as the token for server-side verification
+    requestHeaders.set('Authorization', `Bearer ${sessionCookie}`);
+    
+    return NextResponse.next({
+        request: {
+            headers: requestHeaders,
+        },
+    });
 
   } catch (error) {
     // Session cookie is invalid. Clear it and redirect to login.

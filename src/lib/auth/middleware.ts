@@ -28,7 +28,7 @@ export async function verifyToken(idToken: string): Promise<(DecodedIdToken & Cu
   const auth = getAuth();
   
   try {
-    const decodedToken = await auth.verifyIdToken(idToken);
+    const decodedToken = await auth.verifyIdToken(idToken, true);
     return decodedToken as DecodedIdToken & CustomClaims;
   } catch (error) {
     console.error('Token verification failed:', error);
