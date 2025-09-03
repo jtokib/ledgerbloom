@@ -1,7 +1,7 @@
+
 'use server';
 
-import { getAuth } from 'firebase-admin/auth';
-import { app as adminApp } from '@/lib/firebase-admin';
+import { getAuth } from '@/lib/firebase-admin';
 
 // Custom claims structure
 export interface CustomClaims {
@@ -14,7 +14,7 @@ export interface CustomClaims {
  * Set custom claims for a user
  */
 export async function setUserClaims(uid: string, claims: CustomClaims): Promise<void> {
-  const auth = getAuth(adminApp);
+  const auth = getAuth();
   await auth.setCustomUserClaims(uid, claims);
 }
 
@@ -22,7 +22,7 @@ export async function setUserClaims(uid: string, claims: CustomClaims): Promise<
  * Get custom claims for a user
  */
 export async function getUserClaims(uid: string): Promise<CustomClaims | null> {
-  const auth = getAuth(adminApp);
+  const auth = getAuth();
   const userRecord = await auth.getUser(uid);
   return (userRecord.customClaims as CustomClaims) || null;
 }
@@ -31,7 +31,7 @@ export async function getUserClaims(uid: string): Promise<CustomClaims | null> {
  * Remove all custom claims for a user
  */
 export async function clearUserClaims(uid: string): Promise<void> {
-  const auth = getAuth(adminApp);
+  const auth = getAuth();
   await auth.setCustomUserClaims(uid, null);
 }
 

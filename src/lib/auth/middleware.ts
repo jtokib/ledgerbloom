@@ -1,7 +1,7 @@
+
 'use server';
 
-import { getAuth } from 'firebase-admin/auth';
-import { app as adminApp } from '@/lib/firebase-admin';
+import { getAuth } from '@/lib/firebase-admin';
 import { CustomClaims } from './claims';
 import { cookies, headers } from 'next/headers';
 
@@ -31,7 +31,7 @@ async function getIdTokenFromCookies(): Promise<string | null> {
  * Verify Firebase ID token and return decoded token with claims
  */
 export async function verifyToken(idToken: string) {
-  const auth = getAuth(adminApp);
+  const auth = getAuth();
   
   try {
     const decodedToken = await auth.verifyIdToken(idToken);

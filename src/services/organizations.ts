@@ -1,6 +1,7 @@
+
 'use server';
 import type { Organization } from '@/lib/types';
-import { db } from '@/lib/firebase';
+import { getDb } from '@/lib/firebase-admin';
 import { 
   doc, 
   setDoc, 
@@ -17,6 +18,7 @@ import {
  * Create a new organization
  */
 export async function createOrganization(orgData: Omit<Organization, 'id'>): Promise<Organization> {
+  const db = getDb();
   const orgRef = doc(collection(db, 'organizations'));
   const organization: Organization = {
     id: orgRef.id,
@@ -31,6 +33,7 @@ export async function createOrganization(orgData: Omit<Organization, 'id'>): Pro
  * Get an organization by ID
  */
 export async function getOrganization(orgId: string): Promise<Organization | null> {
+  const db = getDb();
   const orgRef = doc(db, 'organizations', orgId);
   const orgSnap = await getDoc(orgRef);
   
@@ -44,6 +47,7 @@ export async function getOrganization(orgId: string): Promise<Organization | nul
  * Update an organization
  */
 export async function updateOrganization(orgId: string, data: Partial<Organization>): Promise<void> {
+  const db = getDb();
   const orgRef = doc(db, 'organizations', orgId);
   await updateDoc(orgRef, data);
 }
@@ -52,6 +56,7 @@ export async function updateOrganization(orgId: string, data: Partial<Organizati
  * Delete an organization (admin only)
  */
 export async function deleteOrganization(orgId: string): Promise<void> {
+  const db = getDb();
   const orgRef = doc(db, 'organizations', orgId);
   await deleteDoc(orgRef);
 }
@@ -60,6 +65,7 @@ export async function deleteOrganization(orgId: string): Promise<void> {
  * Get all organizations (typically for super admin use)
  */
 export async function getAllOrganizations(): Promise<Organization[]> {
+  const db = getDb();
   const orgsQuery = query(collection(db, 'organizations'));
   const querySnapshot = await getDocs(orgsQuery);
   
