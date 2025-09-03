@@ -2,22 +2,20 @@
 import { NextResponse } from 'next/server';
 import type { NextRequest } from 'next/server';
 
-export const runtime = 'nodejs';
-
 export function middleware(request: NextRequest) {
-  const { pathname } = request.nextUrl;
   const sessionCookie = request.cookies.get('session')?.value;
+  const { pathname } = request.nextUrl;
 
-  // If there's no session cookie and the user is on a protected route, redirect to login
+  // If trying to access protected routes without a session, redirect to login
   if (!sessionCookie && pathname.startsWith('/dashboard')) {
     return NextResponse.redirect(new URL('/', request.url));
   }
 
-  // If there IS a session cookie and the user is on the login/signup page, redirect to dashboard
+  // If session exists and trying to access login/signup, redirect to dashboard
   if (sessionCookie && (pathname === '/' || pathname.startsWith('/signup'))) {
     return NextResponse.redirect(new URL('/dashboard', request.url));
   }
-
+  
   // For dashboard routes, pass the session cookie in the Authorization header
   // This allows server components to verify it
   if (pathname.startsWith('/dashboard')) {
@@ -31,10 +29,11 @@ export function middleware(request: NextRequest) {
     });
   }
 
+
   return NextResponse.next();
 }
 
-// Define the routes that the middleware should run on.
+// See "Matching Paths" below to learn more
 export const config = {
   matcher: [
     /*
