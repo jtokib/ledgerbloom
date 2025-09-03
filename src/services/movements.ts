@@ -3,25 +3,25 @@
 
 import type { InventoryMovement } from '@/lib/types';
 import { db } from '@/lib/firebase';
-import { collection, getDocs, query, orderBy, Timestamp, addDoc, limit, startAfter, getDoc } from 'firebase/firestore';
+import { collection, getDocs, query, orderBy, Timestamp, addDoc, limit, startAfter, getDoc, where, doc } from 'firebase/firestore';
 
 const MOVEMENTS_COLLECTION = 'movements';
 const DEFAULT_PAGE_SIZE = 20;
 
 /**
- * A service to fetch inventory movements from Firestore with pagination.
+ * A service to fetch inventory movements from Firestore with pagination, scoped to organization.
  */
-export async function getMovements(options: { lastVisibleId?: string | null, limit?: number } = {}): Promise<{ movements: InventoryMovement[], hasMore: boolean }> {
+export async function getMovements(organizationId: string, options: { lastVisibleId?: string | null, limit?: number } = {}): Promise<{ movements: InventoryMovement[], hasMore: boolean }> {
   const { lastVisibleId, limit: pageSize = DEFAULT_PAGE_SIZE } = options;
   
   const movementsCol = collection(db, MOVEMENTS_COLLECTION);
   // Order by date descending to get the most recent movements first
-  let q = query(movementsCol, orderBy('occurredAt', 'desc'), limit(pageSize + 1));
+  let q = query(movementsCol, where('organizationId', '==', organizationId), orderBy('occurredAt', 'desc'), limit(pageSize + 1));
 
   if (lastVisibleId) {
     const lastVisibleDoc = await getDoc(doc(db, MOVEMENTS_COLLECTION, lastVisibleId));
     if (lastVisibleDoc.exists()) {
-      q = query(movementsCol, orderBy('occurredAt', 'desc'), startAfter(lastVisibleDoc), limit(pageSize + 1));
+      q = query(movementsCol, where('organizationId', '==', organizationId), orderBy('occurredAt', 'desc'), startAfter(lastVisibleDoc), limit(pageSize + 1));
     }
   }
 

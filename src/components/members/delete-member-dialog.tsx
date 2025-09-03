@@ -16,6 +16,7 @@ import { useToast } from '@/hooks/use-toast';
 import { deleteUser } from '@/app/actions';
 import { Trash2 } from 'lucide-react';
 import { useUser } from 'reactfire';
+import { useCustomClaims } from '@/hooks/use-custom-claims';
 import type { User as AppUser } from '@/lib/types';
 
 interface DeleteMemberDialogProps {
@@ -26,9 +27,10 @@ interface DeleteMemberDialogProps {
 export function DeleteMemberDialog({ member, disabled }: DeleteMemberDialogProps) {
   const { toast } = useToast();
   const { data: user } = useUser();
+  const { claims } = useCustomClaims();
 
   async function handleDelete() {
-    if (!user?.email) {
+    if (!user?.email || !claims?.organizationId) {
         toast({ variant: 'destructive', title: 'Error', description: 'You must be logged in to remove a member.' });
         return;
     }
@@ -37,7 +39,7 @@ export function DeleteMemberDialog({ member, disabled }: DeleteMemberDialogProps
         return;
     }
 
-    const result = await deleteUser(user.email, member.id, member.email);
+    const result = await deleteUser(user.email, claims.organizationId, member.id, member.email);
 
     if (result.success) {
       toast({ title: 'Success', description: 'Member removed successfully.' });

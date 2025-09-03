@@ -14,6 +14,7 @@ export async function createUser(userData: User): Promise<User> {
         email: userData.email,
         displayName: userData.displayName,
         role: userData.role,
+        organizationId: userData.organizationId,
     }, { merge: true });
     
     return userData;

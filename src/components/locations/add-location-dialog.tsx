@@ -27,6 +27,7 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import { useForm } from 'react-hook-form';
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
 import { useUser } from 'reactfire';
+import { useCustomClaims } from '@/hooks/use-custom-claims';
 
 const locationSchema = z.object({
     name: z.string().min(2, { message: 'Name must be at least 2 characters.' }),
@@ -44,6 +45,7 @@ export function AddLocationDialog() {
   const [isPending, startTransition] = useTransition();
   const { toast } = useToast();
   const { data: user } = useUser();
+  const { claims } = useCustomClaims();
 
   const form = useForm<LocationFormValues>({
     resolver: zodResolver(locationSchema),
@@ -56,12 +58,12 @@ export function AddLocationDialog() {
   });
 
   async function onSubmit(data: LocationFormValues) {
-    if (!user?.email) {
+    if (!user?.email || !claims?.organizationId) {
         toast({ variant: 'destructive', title: 'Error', description: 'You must be logged in to create a location.' });
         return;
     }
     startTransition(async () => {
-        const result = await createLocation(user.email, data);
+        const result = await createLocation(user.email!, claims.organizationId, { ...data, organizationId: claims.organizationId });
         if (result.success) {
             toast({ title: 'Success', description: 'Location created successfully.' });
             setOpen(false);

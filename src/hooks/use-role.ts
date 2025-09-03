@@ -1,35 +1,20 @@
 
 'use client';
-import { useState, useEffect } from 'react';
-import { useUser } from 'reactfire';
-import { getUser } from '@/services/users';
+import { useCustomClaims } from './use-custom-claims';
 import type { User as AppUser } from '@/lib/types';
 
 export function useRole() {
-  const { data: firebaseUser } = useUser();
-  const [role, setRole] = useState<AppUser['role'] | null>(null);
-  const [isLoading, setIsLoading] = useState(true);
+  const { claims, loading } = useCustomClaims();
 
-  useEffect(() => {
-    async function fetchUserRole() {
-      if (firebaseUser) {
-        try {
-          const appUser = await getUser(firebaseUser.uid);
-          setRole(appUser?.role ?? null);
-        } catch (error) {
-          console.error("Failed to fetch user role:", error);
-          setRole(null);
-        } finally {
-          setIsLoading(false);
-        }
-      } else {
-        setIsLoading(false);
-        setRole(null);
-      }
-    }
+  const isAdmin = claims?.role === 'admin';
+  const isManager = claims?.role === 'manager' || isAdmin;
+  const isViewer = claims?.role === 'viewer' || isManager;
 
-    fetchUserRole();
-  }, [firebaseUser]);
-
-  return { role, isLoading };
+  return {
+    role: claims?.role || null,
+    isLoading: loading,
+    isAdmin,
+    isManager,
+    isViewer
+  };
 }

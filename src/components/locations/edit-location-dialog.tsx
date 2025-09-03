@@ -26,20 +26,22 @@ import { updateLocation } from '@/app/actions';
 import { Pencil } from 'lucide-react';
 import type { Location } from '@/lib/types';
 import { useUser } from 'reactfire';
+import { useCustomClaims } from '@/hooks/use-custom-claims';
 
 export function EditLocationDialog({ location }: { location: Location }) {
   const [open, setOpen] = useState(false);
   const { toast } = useToast();
   const { data: user } = useUser();
+  const { claims } = useCustomClaims();
 
   async function handleSubmit(event: React.FormEvent<HTMLFormElement>) {
     event.preventDefault();
-     if (!user?.email) {
+     if (!user?.email || !claims?.organizationId) {
         toast({ variant: 'destructive', title: 'Error', description: 'You must be logged in to update a location.' });
         return;
     }
     const formData = new FormData(event.currentTarget);
-    const result = await updateLocation(user.email, formData);
+    const result = await updateLocation(user.email, claims.organizationId, formData);
 
     if (result.success) {
       toast({ title: 'Success', description: 'Location updated successfully.' });

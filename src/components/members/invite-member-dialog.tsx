@@ -23,6 +23,7 @@ import {
 import { useToast } from '@/hooks/use-toast';
 import { createInvitation } from '@/app/actions';
 import { useUser } from 'reactfire';
+import { useCustomClaims } from '@/hooks/use-custom-claims';
 import type { User as AppUser } from '@/lib/types';
 
 interface InviteMemberDialogProps {
@@ -33,10 +34,11 @@ export function InviteMemberDialog({ disabled }: InviteMemberDialogProps) {
   const [open, setOpen] = useState(false);
   const { toast } = useToast();
   const { data: user } = useUser();
+  const { claims } = useCustomClaims();
 
   async function handleSubmit(event: React.FormEvent<HTMLFormElement>) {
     event.preventDefault();
-    if (!user?.email) {
+    if (!user?.email || !claims?.organizationId) {
         toast({ variant: 'destructive', title: 'Error', description: 'You must be logged in to invite a member.' });
         return;
     }
@@ -44,7 +46,7 @@ export function InviteMemberDialog({ disabled }: InviteMemberDialogProps) {
     const invitedEmail = formData.get('email') as string;
     const role = formData.get('role') as AppUser['role'];
 
-    const result = await createInvitation(user.email, invitedEmail, role);
+    const result = await createInvitation(user.email, claims.organizationId, invitedEmail, role);
 
     if (result.success) {
       toast({ title: 'Success', description: result.message });

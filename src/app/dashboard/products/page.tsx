@@ -20,10 +20,13 @@ import { useToast } from '@/hooks/use-toast';
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
 import { cn } from '@/lib/utils';
 import { Input } from '@/components/ui/input';
+import { getCurrentOrganizationId } from '@/lib/auth/middleware';
+import { useCustomClaims } from "@/hooks/use-custom-claims";
 
 
 export default function ProductsPage() {
   const { role, isLoading: isRoleLoading } = useRole();
+  const { claims } = useCustomClaims();
   const [products, setProducts] = useState<Product[]>([]);
   const [hasMore, setHasMore] = useState(true);
   const [isLoading, setIsLoading] = useState(true);
@@ -34,7 +37,8 @@ export default function ProductsPage() {
 
   useEffect(() => {
     async function fetchData() {
-      const { products: initialProducts, hasMore: initialHasMore } = await getProducts({ limit: 10 });
+      const organizationId = await getCurrentOrganizationId();
+      const { products: initialProducts, hasMore: initialHasMore } = await getProducts(organizationId, { limit: 10 });
       setProducts(initialProducts);
       setHasMore(initialHasMore);
       setIsLoading(false);
@@ -55,11 +59,11 @@ export default function ProductsPage() {
   }
 
   const loadMoreProducts = async () => {
-    if (!hasMore || isPending) return;
+    if (!hasMore || isPending || !claims?.organizationId) return;
 
     startTransition(async () => {
         const lastVisibleId = products[products.length - 1]?.id;
-        const result = await getMoreProducts(lastVisibleId);
+        const result = await getMoreProducts(claims.organizationId, lastVisibleId);
         if (result.success) {
             setProducts(prevProducts => [...prevProducts, ...result.products!]);
             setHasMore(result.hasMore!);

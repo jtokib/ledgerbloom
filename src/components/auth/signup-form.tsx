@@ -28,7 +28,9 @@ export function SignUpForm() {
       
       if (userCredential.user) {
         await updateProfile(userCredential.user, { displayName: name });
-        const dbUserResult = await createUser(userCredential.user.uid, name, email);
+        // For new signups without invitation, create a new organization ID
+        const organizationId = `org_${userCredential.user.uid}`;
+        const dbUserResult = await createUser(userCredential.user.uid, name, email, organizationId);
 
         if (!dbUserResult.success) {
             throw new Error(dbUserResult.error);

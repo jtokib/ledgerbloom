@@ -16,17 +16,19 @@ import { useToast } from '@/hooks/use-toast';
 import { deleteProduct } from '@/app/actions';
 import { Trash2 } from 'lucide-react';
 import { useUser } from 'reactfire';
+import { useCustomClaims } from '@/hooks/use-custom-claims';
 
 export function DeleteProductDialog({ productId }: { productId: string }) {
   const { toast } = useToast();
   const { data: user } = useUser();
+  const { claims } = useCustomClaims();
 
   async function handleDelete() {
-    if (!user?.email) {
+    if (!user?.email || !claims?.organizationId) {
         toast({ variant: 'destructive', title: 'Error', description: 'You must be logged in to delete a product.' });
         return;
     }
-    const result = await deleteProduct(user.email, productId);
+    const result = await deleteProduct(user.email, claims.organizationId, productId);
 
     if (result.success) {
       toast({ title: 'Success', description: 'Product deleted successfully.' });

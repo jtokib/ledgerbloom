@@ -16,6 +16,7 @@ import { Label } from '@/components/ui/label';
 import { useToast } from '@/hooks/use-toast';
 import { createOrder, suggestItemsForOrder } from '@/app/actions';
 import { useUser } from 'reactfire';
+import { useCustomClaims } from '@/hooks/use-custom-claims';
 import type { OrderItem, Product } from '@/lib/types';
 import { getProducts } from '@/services/products';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
@@ -39,12 +40,13 @@ export function AddOrderDialog() {
 
   const { toast } = useToast();
   const { data: user } = useUser();
+  const { claims } = useCustomClaims();
 
   useEffect(() => {
     if (open) {
       async function fetchProducts() {
         setIsLoading(true);
-        const { products } = await getProducts({ limit: 1000 });
+        const { products } = await getProducts(claims?.organizationId || '', { limit: 1000 });
         setProducts(products);
         setIsLoading(false);
       }
@@ -94,9 +96,12 @@ export function AddOrderDialog() {
   };
 
   const handleGenerateItems = async () => {
-    if (!aiPrompt) return;
+    if (!aiPrompt || !claims?.organizationId) return;
     setIsAiLoading(true);
-    const result = await suggestItemsForOrder(aiPrompt);
+    const result = await suggestItemsForOrder({
+      organizationId: claims.organizationId,
+      description: aiPrompt
+    });
     setIsAiLoading(false);
 
     if (result.success && result.items) {
@@ -137,7 +142,7 @@ export function AddOrderDialog() {
   async function handleSubmit(event: React.FormEvent<HTMLFormElement>) {
     event.preventDefault();
     startSubmitTransition(async () => {
-        if (!user?.email) {
+        if (!user?.email || !claims?.organizationId) {
             toast({ variant: 'destructive', title: 'Error', description: 'You must be logged in to create an order.' });
             return;
         }
@@ -154,7 +159,7 @@ export function AddOrderDialog() {
         formData.append('customerName', customerName);
         formData.append('items', JSON.stringify(items));
         
-        const result = await createOrder(user.email, formData);
+        const result = await createOrder(user.email, claims.organizationId, formData);
 
         if (result.success) {
         toast({ title: 'Success', description: 'Order created successfully.' });

@@ -19,6 +19,8 @@ import { useRole } from "@/hooks/use-role";
 import { InviteMemberDialog } from "@/components/members/invite-member-dialog";
 import { EditMemberDialog } from "@/components/members/edit-member-dialog";
 import { DeleteMemberDialog } from "@/components/members/delete-member-dialog";
+import { getCurrentOrganizationId } from '@/lib/auth/middleware';
+import { useCustomClaims } from "@/hooks/use-custom-claims";
 
 function MembersTable() {
   const [members, setMembers] = useState<AppUser[]>([]);
@@ -103,17 +105,18 @@ function MembersTable() {
 
 export default function SettingsPage() {
   const { data: user } = useUser();
+  const { claims } = useCustomClaims();
   const { toast } = useToast();
   const formRef = useRef<HTMLFormElement>(null);
 
   const handleProfileSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault();
-    if (!user?.email) {
+    if (!user?.email || !user?.uid || !claims?.organizationId) {
       toast({ variant: "destructive", title: "Error", description: "You must be logged in to update your profile." });
       return;
     }
     const formData = new FormData(event.currentTarget);
-    const result = await updateUserProfile(user.email, formData);
+    const result = await updateUserProfile(user.email, user.uid, claims.organizationId, formData);
 
     if (result.success) {
       toast({ title: "Success", description: result.message });

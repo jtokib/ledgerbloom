@@ -17,20 +17,22 @@ import { Switch } from '@/components/ui/switch';
 import { useToast } from '@/hooks/use-toast';
 import { createProduct } from '@/app/actions';
 import { useUser } from 'reactfire';
+import { useCustomClaims } from '@/hooks/use-custom-claims';
 
 export function AddProductDialog() {
   const [open, setOpen] = useState(false);
   const { toast } = useToast();
   const { data: user } = useUser();
+  const { claims } = useCustomClaims();
 
   async function handleSubmit(event: React.FormEvent<HTMLFormElement>) {
     event.preventDefault();
-    if (!user?.email) {
+    if (!user?.email || !claims?.organizationId) {
         toast({ variant: 'destructive', title: 'Error', description: 'You must be logged in to create a product.' });
         return;
     }
     const formData = new FormData(event.currentTarget);
-    const result = await createProduct(user.email, formData);
+    const result = await createProduct(user.email, claims.organizationId, formData);
 
     if (result.success) {
       toast({ title: 'Success', description: 'Product created successfully.' });

@@ -22,6 +22,7 @@ import {
 import { useToast } from '@/hooks/use-toast';
 import { updateUserRole } from '@/app/actions';
 import { useUser } from 'reactfire';
+import { useCustomClaims } from '@/hooks/use-custom-claims';
 import type { User as AppUser } from '@/lib/types';
 import { Pencil } from 'lucide-react';
 
@@ -35,9 +36,10 @@ export function EditMemberDialog({ member, disabled }: EditMemberDialogProps) {
   const [role, setRole] = useState<AppUser['role']>(member.role);
   const { toast } = useToast();
   const { data: user } = useUser();
+  const { claims } = useCustomClaims();
 
   async function handleSubmit() {
-    if (!user?.email) {
+    if (!user?.email || !claims?.organizationId) {
         toast({ variant: 'destructive', title: 'Error', description: 'You must be logged in to update a member.' });
         return;
     }
@@ -46,7 +48,7 @@ export function EditMemberDialog({ member, disabled }: EditMemberDialogProps) {
         return;
     }
 
-    const result = await updateUserRole(user.email, member.id, member.email, role);
+    const result = await updateUserRole(user.email, claims.organizationId, member.id, member.email, role);
 
     if (result.success) {
       toast({ title: 'Success', description: result.message });

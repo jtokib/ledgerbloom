@@ -6,17 +6,27 @@ import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle }
 import { useToast } from '@/hooks/use-toast';
 import { generateSuggestions } from '@/app/actions';
 import { BrainCircuit, Sparkles } from 'lucide-react';
+import { useCustomClaims } from '@/hooks/use-custom-claims';
 
 export default function AiInsightsPage() {
   const [suggestions, setSuggestions] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const { toast } = useToast();
+  const { claims } = useCustomClaims();
 
   const handleGenerate = async () => {
+    if (!claims?.organizationId) {
+      toast({
+        variant: 'destructive',
+        title: 'Error',
+        description: 'Organization ID not found',
+      });
+      return;
+    }
+
     setIsLoading(true);
     setSuggestions('');
-    // Pass an empty object as input since the tool now fetches data.
-    const result = await generateSuggestions({});
+    const result = await generateSuggestions({ organizationId: claims.organizationId });
     setIsLoading(false);
     if (result.success) {
       setSuggestions(result.suggestions ?? '');

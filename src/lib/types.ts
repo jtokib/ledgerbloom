@@ -11,6 +11,7 @@ export interface User {
   email: string;
   displayName?: string;
   role: 'admin' | 'manager' | 'viewer';
+  organizationId: string;
 }
 
 export interface Invitation {
@@ -20,6 +21,7 @@ export interface Invitation {
   invitedBy: string; // email of admin
   createdAt: Date;
   token: string;
+  organizationId: string;
 }
 
 
@@ -29,6 +31,7 @@ export interface Member {
   role: 'admin' | 'manager' | 'viewer';
   email: string;
   lastActiveAt: Date;
+  organizationId: string;
 }
 
 export interface Product {
@@ -38,6 +41,7 @@ export interface Product {
   active: boolean;
   variants: Variant[];
   imageUrl?: string;
+  organizationId: string;
 }
 
 export interface Variant {
@@ -56,6 +60,7 @@ export interface Location {
   address?: string;
   type: 'warehouse' | 'store' | 'supplier';
   active: boolean;
+  organizationId: string;
 }
 
 export interface InventoryMovement {
@@ -68,6 +73,7 @@ export interface InventoryMovement {
   cause: 'purchase' | 'sale' | 'adjustment' | 'transfer' | 'production';
   occurredAt: Date;
   actor: string;
+  organizationId: string;
 }
 
 export interface InventoryLevel {
@@ -77,6 +83,7 @@ export interface InventoryLevel {
   qty: number;
   uom: string;
   updatedAt: Date;
+  organizationId: string;
 }
 
 export interface OrderItem {
@@ -95,6 +102,7 @@ export interface Order {
     createdAt: Date;
     items: OrderItem[];
     totalValue: number;
+    organizationId: string;
 }
 
 export interface ExportLog {
@@ -108,6 +116,7 @@ export interface ExportLog {
     movements: number;
   };
   message?: string;
+  organizationId: string;
 }
 
 export interface AuditLog {
@@ -120,6 +129,7 @@ export interface AuditLog {
     entityId: string;
     message: string;
   };
+  organizationId: string;
 }
 
 export interface FulfillmentItem {

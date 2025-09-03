@@ -7,14 +7,14 @@ import { getMovements } from './movements';
  * In a real application, this would fetch data from a database or API.
  * This function now calculates inventory levels from the movements log.
  */
-export async function getInventoryLevels(): Promise<InventoryLevel[]> {
+export async function getInventoryLevels(organizationId: string): Promise<InventoryLevel[]> {
   // Simulate network delay
   await new Promise(resolve => setTimeout(resolve, 500));
 
   // NOTE: This is fetching ALL movements to calculate levels. 
   // For a large dataset, this would be inefficient. A real-world app would
   // likely use a materialized view or a different calculation strategy.
-  const { movements } = await getMovements({limit: 9999});
+  const { movements } = await getMovements(organizationId, {limit: 9999});
 
   const inventoryMap = new Map<string, InventoryLevel>();
 
@@ -34,6 +34,7 @@ export async function getInventoryLevels(): Promise<InventoryLevel[]> {
         qty: 0,
         uom: movement.uom,
         updatedAt: movement.occurredAt,
+        organizationId: organizationId,
       };
     }
 

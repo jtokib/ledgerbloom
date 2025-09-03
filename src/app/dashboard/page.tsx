@@ -16,12 +16,14 @@ import { getProducts } from '@/services/products';
 import { subDays, format, startOfDay, eachDayOfInterval } from 'date-fns';
 import { DashboardChart } from '@/components/dashboard/dashboard-chart';
 import { RecentActivity } from '@/components/dashboard/recent-activity';
+import { getCurrentOrganizationId } from '@/lib/auth/middleware';
 
 export default async function Dashboard() {
-  const inventoryLevels = await getInventoryLevels();
-  const { locations } = await getLocations({ limit: 1000 });
-  const { movements } = await getMovements({ limit: 1000 }); // Fetch more for chart and activity
-  const { products } = await getProducts({ limit: 1000 });
+  const organizationId = await getCurrentOrganizationId();
+  const inventoryLevels = await getInventoryLevels(organizationId);
+  const { locations } = await getLocations(organizationId, { limit: 1000 });
+  const { movements } = await getMovements(organizationId, { limit: 1000 }); // Fetch more for chart and activity
+  const { products } = await getProducts(organizationId, { limit: 1000 });
 
 
   // This is a placeholder calculation. A real app would use product cost.

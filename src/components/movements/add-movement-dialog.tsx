@@ -28,6 +28,7 @@ import type { Product, Location } from '@/lib/types';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { Skeleton } from '../ui/skeleton';
 import { useUser } from 'reactfire';
+import { useCustomClaims } from '@/hooks/use-custom-claims';
 
 type AddMovementDialogProps = {
     children: React.ReactNode;
@@ -40,14 +41,15 @@ export function AddMovementDialog({ children }: AddMovementDialogProps) {
   const [locations, setLocations] = useState<Location[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const { data: user } = useUser();
+  const { claims } = useCustomClaims();
 
   useEffect(() => {
-    if (open) {
+    if (open && claims?.organizationId) {
       async function fetchData() {
         setIsLoading(true);
         const [productsData, locationsData] = await Promise.all([
-            getProducts(),
-            getLocations(),
+            getProducts(claims!.organizationId),
+            getLocations(claims!.organizationId),
         ]);
         setProducts(productsData.products);
         setLocations(locationsData.locations);
@@ -55,16 +57,16 @@ export function AddMovementDialog({ children }: AddMovementDialogProps) {
       }
       fetchData();
     }
-  }, [open]);
+  }, [open, claims?.organizationId]);
 
   async function handleSubmit(event: React.FormEvent<HTMLFormElement>) {
     event.preventDefault();
-    if (!user?.email) {
+    if (!user?.email || !claims?.organizationId) {
         toast({ variant: 'destructive', title: 'Error', description: 'You must be logged in to create a movement.' });
         return;
     }
     const formData = new FormData(event.currentTarget);
-    const result = await createMovement(user.email, formData);
+    const result = await createMovement(user.email, claims.organizationId, formData);
 
     if (result.success) {
       toast({ title: 'Success', description: 'Movement created successfully.' });

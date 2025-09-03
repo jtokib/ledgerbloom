@@ -16,12 +16,14 @@ const getAvailableProducts = ai.defineTool(
   {
     name: 'getAvailableProducts',
     description: 'Fetches the list of all available products and their variants from the database to see what can be ordered.',
-    inputSchema: z.undefined(),
+    inputSchema: z.object({
+      organizationId: z.string().describe("The organization ID to fetch products for")
+    }),
     outputSchema: z.string(),
   },
-  async () => {
+  async (input) => {
     console.log('Fetching available products for AI...');
-    const { products } = await getProducts({ limit: 1000 }); // Get all products
+    const { products } = await getProducts(input.organizationId, { limit: 1000 }); // Get all products
 
     const productSummary = products.map(p => ({
         name: p.displayName,
@@ -39,7 +41,10 @@ const getAvailableProducts = ai.defineTool(
 );
 
 
-const SuggestOrderItemsInputSchema = z.string().describe("A natural language description of the items a customer wants to order.");
+const SuggestOrderItemsInputSchema = z.object({
+  organizationId: z.string().describe("The organization ID to suggest items for"),
+  description: z.string().describe("A natural language description of the items a customer wants to order.")
+});
 export type SuggestOrderItemsInput = z.infer<typeof SuggestOrderItemsInputSchema>;
 
 const OrderItemSuggestionSchema = z.object({
@@ -65,9 +70,9 @@ const prompt = ai.definePrompt({
 
 Your goal is to parse the user's request and convert it into a structured list of order items.
 
-First, you MUST call the 'getAvailableProducts' tool to get the full, up-to-date catalog of products and their variants.
+First, you MUST call the 'getAvailableProducts' tool with the organization ID to get the full, up-to-date catalog of products and their variants.
 
-Then, carefully analyze the user's request: {{{prompt}}}. Match the user's request to the available products. Pay close attention to quantities, sizes, and specific product names.
+Then, carefully analyze the user's request: {{{description}}}. Match the user's request to the available products. Pay close attention to quantities, sizes, and specific product names.
 
 If a user's request is ambiguous, make a reasonable assumption (e.g., if they ask for "a bag", assume the default or smallest size).
 

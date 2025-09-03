@@ -25,6 +25,7 @@ import { updateOrder } from '@/app/actions';
 import { Pencil, Trash2 } from 'lucide-react';
 import type { Order, OrderItem, Product } from '@/lib/types';
 import { useUser } from 'reactfire';
+import { useCustomClaims } from '@/hooks/use-custom-claims';
 import { getProducts } from '@/services/products';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 
@@ -40,6 +41,7 @@ export function EditOrderDialog({ order }: { order: Order }) {
 
   const { toast } = useToast();
   const { data: user } = useUser();
+  const { claims } = useCustomClaims();
 
   useEffect(() => {
     if (open) {
@@ -52,7 +54,7 @@ export function EditOrderDialog({ order }: { order: Order }) {
 
       async function fetchProducts() {
         setIsLoading(true);
-        const { products } = await getProducts({ limit: 1000 });
+        const { products } = await getProducts(claims?.organizationId || '', { limit: 1000 });
         setProducts(products);
         setIsLoading(false);
       }
@@ -98,7 +100,7 @@ export function EditOrderDialog({ order }: { order: Order }) {
 
   async function handleSubmit(event: React.FormEvent<HTMLFormElement>) {
     event.preventDefault();
-    if (!user?.email) {
+    if (!user?.email || !claims?.organizationId) {
         toast({ variant: 'destructive', title: 'Error', description: 'You must be logged in to update an order.' });
         return;
     }
@@ -109,7 +111,7 @@ export function EditOrderDialog({ order }: { order: Order }) {
     formData.append('status', status);
     formData.append('items', JSON.stringify(items));
 
-    const result = await updateOrder(user.email, formData);
+    const result = await updateOrder(user.email, claims.organizationId, formData);
 
     if (result.success) {
       toast({ title: 'Success', description: 'Order updated successfully.' });

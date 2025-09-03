@@ -50,11 +50,11 @@ const exportToBigQueryFlow = ai.defineFlow(
 
     try {
       // Step 1: Fetch all necessary data from mock services
-      const inventoryLevels = await getInventoryLevels();
-      const movements = await getMovements();
+      const inventoryLevels = await getInventoryLevels('temp-org-id'); // TODO: Get from context
+      const movements = await getMovements('temp-org-id'); // TODO: Get from context
 
       console.log(`Fetched ${inventoryLevels.length} inventory level records.`);
-      console.log(`Fetched ${movements.length} movement records.`);
+      console.log(`Fetched ${movements.movements.length} movement records.`);
 
       // Step 2: In a real application, you would connect to the BigQuery API here.
       // This requires the '@google-cloud/bigquery' package to be installed.

@@ -14,8 +14,11 @@ import { useEffect, useState, useTransition } from "react";
 import type { InventoryMovement, Product, Location } from "@/lib/types";
 import { useToast } from "@/hooks/use-toast";
 import { Skeleton } from "@/components/ui/skeleton";
+import { getCurrentOrganizationId } from '@/lib/auth/middleware';
+import { useCustomClaims } from "@/hooks/use-custom-claims";
 
 export default function MovementsPage() {
+  const { claims } = useCustomClaims();
   const [movements, setMovements] = useState<InventoryMovement[]>([]);
   const [products, setProducts] = useState<Product[]>([]);
   const [locations, setLocations] = useState<Location[]>([]);
@@ -26,14 +29,15 @@ export default function MovementsPage() {
 
   useEffect(() => {
     async function fetchData() {
+      const organizationId = await getCurrentOrganizationId();
       const [
         { movements: initialMovements, hasMore: initialHasMore },
         { products: productsData },
         { locations: locationsData }
       ] = await Promise.all([
-        getMovements({ limit: 20 }),
-        getProducts({ limit: 500 }), // Fetch all products/locations for mapping
-        getLocations({ limit: 500 })
+        getMovements(organizationId, { limit: 20 }),
+        getProducts(organizationId, { limit: 500 }), // Fetch all products/locations for mapping
+        getLocations(organizationId, { limit: 500 })
       ]);
       
       setMovements(initialMovements);
@@ -46,11 +50,11 @@ export default function MovementsPage() {
   }, []);
 
   const loadMoreMovements = async () => {
-    if (!hasMore || isPending) return;
+    if (!hasMore || isPending || !claims?.organizationId) return;
 
     startTransition(async () => {
         const lastVisibleId = movements[movements.length - 1]?.id;
-        const result = await getMoreMovements(lastVisibleId);
+        const result = await getMoreMovements(claims.organizationId, lastVisibleId);
         if (result.success) {
             setMovements(prevMovements => [...prevMovements, ...result.movements!]);
             setHasMore(result.hasMore!);

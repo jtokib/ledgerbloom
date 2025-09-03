@@ -12,23 +12,25 @@ import { getExportLogs } from '@/services/exports';
 import type { ExportLog } from '@/lib/types';
 import { Skeleton } from '@/components/ui/skeleton';
 import { useUser } from 'reactfire';
+import { useCustomClaims } from '@/hooks/use-custom-claims';
 
 export function ReportsClient({ initialLogs }: { initialLogs: ExportLog[] }) {
   const [isExporting, setIsExporting] = useState(false);
   const [logs, setLogs] = useState<ExportLog[]>(initialLogs);
   const { data: user } = useUser();
+  const { claims } = useCustomClaims();
   const { toast } = useToast();
 
   const handleExport = async () => {
     setIsExporting(true);
 
-    if (!user?.email) {
+    if (!user?.email || !claims?.organizationId) {
         toast({ variant: 'destructive', title: 'Error', description: 'You must be logged in to export data.' });
         setIsExporting(false);
         return;
     }
     
-    const result = await exportToBigQuery(user.email, {
+    const result = await exportToBigQuery(user.email, claims.organizationId, {
         datasetId: "ledgerbloom_data",
         inventoryTableId: "inventory_levels",
         movementsTableId: "inventory_movements"

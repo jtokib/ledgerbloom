@@ -13,9 +13,12 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { AddOrderDialog } from "@/components/orders/add-order-dialog";
 import { EditOrderDialog } from "@/components/orders/edit-order-dialog";
 import { useToast } from "@/hooks/use-toast";
+import { getCurrentOrganizationId } from '@/lib/auth/middleware';
+import { useCustomClaims } from "@/hooks/use-custom-claims";
 
 export default function OrdersPage() {
   const { role, isLoading: isRoleLoading } = useRole();
+  const { claims } = useCustomClaims();
   const [orders, setOrders] = useState<Order[]>([]);
   const [hasMore, setHasMore] = useState(true);
   const [isLoading, setIsLoading] = useState(true);
@@ -24,7 +27,8 @@ export default function OrdersPage() {
 
   useEffect(() => {
     async function fetchData() {
-      const { orders: initialOrders, hasMore: initialHasMore } = await getOrders({ limit: 10 });
+      const organizationId = await getCurrentOrganizationId();
+      const { orders: initialOrders, hasMore: initialHasMore } = await getOrders(organizationId, { limit: 10 });
       setOrders(initialOrders);
       setHasMore(initialHasMore);
       setIsLoading(false);
@@ -33,11 +37,11 @@ export default function OrdersPage() {
   }, []);
 
   const loadMoreOrders = async () => {
-    if (!hasMore || isPending) return;
+    if (!hasMore || isPending || !claims?.organizationId) return;
 
     startTransition(async () => {
         const lastVisibleId = orders[orders.length - 1]?.id;
-        const result = await getMoreOrders(lastVisibleId);
+        const result = await getMoreOrders(claims.organizationId, lastVisibleId);
         if (result.success) {
             setOrders(prevOrders => [...prevOrders, ...result.orders!]);
             setHasMore(result.hasMore!);

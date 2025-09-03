@@ -8,17 +8,29 @@ service cloud.firestore {
       return request.auth != null;
     }
     
-    function getUserRole(userId) {
-      return get(/databases/$(database)/documents/users/$(userId)).data.role;
+    function getUserRole() {
+      return request.auth.token.role;
+    }
+    
+    function getUserOrganizationId() {
+      return request.auth.token.organizationId;
     }
     
     function isManagerOrAdmin() {
-      let userRole = getUserRole(request.auth.uid);
+      let userRole = getUserRole();
       return userRole == 'manager' || userRole == 'admin';
     }
     
     function isAdmin() {
-       return getUserRole(request.auth.uid) == 'admin';
+       return getUserRole() == 'admin';
+    }
+    
+    function belongsToUserOrganization(organizationId) {
+      return getUserOrganizationId() == organizationId;
+    }
+    
+    function hasValidClaims() {
+      return request.auth.token.role != null && request.auth.token.organizationId != null;
     }
 
     // Default deny all
@@ -26,74 +38,85 @@ service cloud.firestore {
       allow read, write: if false;
     }
     
+    // Organizations Collection
+    match /organizations/{organizationId} {
+      // Users can read their own organization
+      allow read: if isAuthenticated() && hasValidClaims() && belongsToUserOrganization(organizationId);
+      
+      // Only admins can update organization settings
+      allow update: if isAdmin() && hasValidClaims() && belongsToUserOrganization(organizationId);
+      
+      // Organization creation and deletion handled server-side
+      allow create, delete: if false;
+    }
+    
     // Users Collection
     match /users/{userId} {
-      // Any authenticated user can read user profiles (for names, roles, etc.)
-      allow read: if isAuthenticated();
+      // Users can read profiles within their organization (requires valid claims)
+      allow read: if isAuthenticated() && hasValidClaims() && belongsToUserOrganization(resource.data.organizationId);
       
-      // A user can create their own user document
-      allow create: if request.auth.uid == userId;
+      // A user can create their own user document with correct organizationId
+      allow create: if request.auth.uid == userId && hasValidClaims() && belongsToUserOrganization(request.resource.data.organizationId);
       
-      // An admin can update any user's role. A user can update their own displayName.
-      allow update: if (isAdmin() && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['role'])) || 
-                       (request.auth.uid == userId && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['displayName']));
+      // An admin can update any user's role within their org. A user can update their own displayName.
+      allow update: if hasValidClaims() && belongsToUserOrganization(resource.data.organizationId) &&
+                      ((isAdmin() && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['role'])) || 
+                       (request.auth.uid == userId && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['displayName'])));
                        
-      // Only an admin can delete a user, but not themselves.
-      allow delete: if isAdmin() && request.auth.uid != userId;
+      // Only an admin can delete a user within their org, but not themselves.
+      allow delete: if isAdmin() && hasValidClaims() && request.auth.uid != userId && belongsToUserOrganization(resource.data.organizationId);
     }
     
     // Invitations Collection
     match /invitations/{invitationId} {
-      // Only admins can create invitations
-      allow create: if isAdmin();
+      // Only admins can create invitations within their organization
+      allow create: if isAdmin() && hasValidClaims() && belongsToUserOrganization(request.resource.data.organizationId);
       
-      // Invitations are read during signup process (no auth yet) or by admins.
-      // This is a simplification. A more secure pattern would use a callable function.
-      // For now, we allow read by admins. The signup logic is server-side.
-      allow read: if isAdmin();
+      // Admins can read invitations for their organization
+      allow read: if isAdmin() && hasValidClaims() && belongsToUserOrganization(resource.data.organizationId);
       
-      // Invitations are deleted by the system (server action) after use.
-      allow delete: if isAdmin();
+      // Invitations are deleted by admins within their organization
+      allow delete: if isAdmin() && hasValidClaims() && belongsToUserOrganization(resource.data.organizationId);
     }
     
-    // Products, Locations, and Orders: Require manager or admin for CUD
+    // Products, Locations, and Orders: Require manager or admin for CUD within organization
     match /products/{productId} {
-      allow read: if isAuthenticated();
-      allow write: if isManagerOrAdmin();
+      allow read: if isAuthenticated() && hasValidClaims() && belongsToUserOrganization(resource.data.organizationId);
+      allow write: if isManagerOrAdmin() && hasValidClaims() && belongsToUserOrganization(resource.data.organizationId);
     }
     
     match /locations/{locationId} {
-      allow read: if isAuthenticated();
-      allow write: if isManagerOrAdmin();
+      allow read: if isAuthenticated() && hasValidClaims() && belongsToUserOrganization(resource.data.organizationId);
+      allow write: if isManagerOrAdmin() && hasValidClaims() && belongsToUserOrganization(resource.data.organizationId);
     }
     
     match /orders/{orderId} {
-      allow read: if isAuthenticated();
-      allow write: if isManagerOrAdmin();
+      allow read: if isAuthenticated() && hasValidClaims() && belongsToUserOrganization(resource.data.organizationId);
+      allow write: if isManagerOrAdmin() && hasValidClaims() && belongsToUserOrganization(resource.data.organizationId);
     }
 
     // Movements
     match /movements/{movementId} {
-       allow read: if isAuthenticated();
-       // Only server-side actions can create movements
-       allow create: if isManagerOrAdmin();
+       allow read: if isAuthenticated() && hasValidClaims() && belongsToUserOrganization(resource.data.organizationId);
+       // Only server-side actions can create movements within organization
+       allow create: if isManagerOrAdmin() && hasValidClaims() && belongsToUserOrganization(request.resource.data.organizationId);
        // Movements should be immutable
        allow update, delete: if false;
     }
     
     // Audit Logs & Export Logs
     match /audit_logs/{logId} {
-      allow read: if isManagerOrAdmin();
-      // Only server-side actions can create logs
-      allow create: if isManagerOrAdmin();
+      allow read: if isManagerOrAdmin() && hasValidClaims() && belongsToUserOrganization(resource.data.organizationId);
+      // Only server-side actions can create logs within organization
+      allow create: if isManagerOrAdmin() && hasValidClaims() && belongsToUserOrganization(request.resource.data.organizationId);
       // Logs should be immutable
       allow update, delete: if false;
     }
 
     match /export_logs/{logId} {
-      allow read: if isManagerOrAdmin();
-      // Only server-side actions can create logs
-      allow create: if isManagerOrAdmin();
+      allow read: if isManagerOrAdmin() && hasValidClaims() && belongsToUserOrganization(resource.data.organizationId);
+      // Only server-side actions can create logs within organization
+      allow create: if isManagerOrAdmin() && hasValidClaims() && belongsToUserOrganization(request.resource.data.organizationId);
       // Logs should be immutable
       allow update, delete: if false;
     }

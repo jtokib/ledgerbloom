@@ -8,15 +8,18 @@ import { AddLocationDialog } from "@/components/locations/add-location-dialog";
 import { EditLocationDialog } from "@/components/locations/edit-location-dialog";
 import { DeleteLocationDialog } from "@/components/locations/delete-location-dialog";
 import { useRole } from "@/hooks/use-role";
+import { useCustomClaims } from "@/hooks/use-custom-claims";
 import { useEffect, useState, useTransition } from "react";
 import type { Location } from "@/lib/types";
 import { getLocations } from "@/services/locations";
 import { getMoreLocations } from '@/app/actions';
 import { Skeleton } from "@/components/ui/skeleton";
 import { useToast } from "@/hooks/use-toast";
+import { getCurrentOrganizationId } from '@/lib/auth/middleware';
 
 export default function LocationsPage() {
   const { role, isLoading: isRoleLoading } = useRole();
+  const { claims } = useCustomClaims();
   const [locations, setLocations] = useState<Location[]>([]);
   const [hasMore, setHasMore] = useState(true);
   const [isLoading, setIsLoading] = useState(true);
@@ -25,7 +28,8 @@ export default function LocationsPage() {
 
   useEffect(() => {
     async function fetchData() {
-      const { locations: initialLocations, hasMore: initialHasMore } = await getLocations({ limit: 10 });
+      const organizationId = await getCurrentOrganizationId();
+      const { locations: initialLocations, hasMore: initialHasMore } = await getLocations(organizationId, { limit: 10 });
       setLocations(initialLocations);
       setHasMore(initialHasMore);
       setIsLoading(false);
@@ -34,11 +38,11 @@ export default function LocationsPage() {
   }, []);
   
   const loadMoreLocations = async () => {
-    if (!hasMore || isPending) return;
+    if (!hasMore || isPending || !claims?.organizationId) return;
 
     startTransition(async () => {
         const lastVisibleId = locations[locations.length - 1]?.id;
-        const result = await getMoreLocations(lastVisibleId);
+        const result = await getMoreLocations(claims.organizationId, lastVisibleId);
         if (result.success) {
             setLocations(prevLocations => [...prevLocations, ...result.locations!]);
             setHasMore(result.hasMore!);

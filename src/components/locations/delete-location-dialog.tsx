@@ -16,17 +16,19 @@ import { useToast } from '@/hooks/use-toast';
 import { deleteLocation } from '@/app/actions';
 import { Trash2 } from 'lucide-react';
 import { useUser } from 'reactfire';
+import { useCustomClaims } from '@/hooks/use-custom-claims';
 
 export function DeleteLocationDialog({ locationId }: { locationId: string }) {
   const { toast } = useToast();
   const { data: user } = useUser();
+  const { claims } = useCustomClaims();
 
   async function handleDelete() {
-    if (!user?.email) {
+    if (!user?.email || !claims?.organizationId) {
         toast({ variant: 'destructive', title: 'Error', description: 'You must be logged in to delete a location.' });
         return;
     }
-    const result = await deleteLocation(user.email, locationId);
+    const result = await deleteLocation(user.email, claims.organizationId, locationId);
 
     if (result.success) {
       toast({ title: 'Success', description: 'Location deleted successfully.' });

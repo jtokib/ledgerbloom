@@ -17,14 +17,16 @@ const getLiveInventoryData = ai.defineTool(
   {
     name: 'getLiveInventoryData',
     description: 'Fetches current inventory levels and recent movement data from the database.',
-    inputSchema: z.undefined(),
+    inputSchema: z.object({
+      organizationId: z.string().describe("The organization ID to fetch data for")
+    }),
     outputSchema: z.string(),
   },
-  async () => {
+  async (input) => {
     console.log('Fetching live inventory data...');
     const [inventoryLevels, { movements }] = await Promise.all([
-      getInventoryLevels(),
-      getMovements({ limit: 100 }), // Get recent movements
+      getInventoryLevels(input.organizationId),
+      getMovements(input.organizationId, { limit: 100 }), // Get recent movements
     ]);
 
     const inventorySummary = `Current Inventory Levels:\n${JSON.stringify(inventoryLevels, null, 2)}`;
@@ -37,7 +39,9 @@ const getLiveInventoryData = ai.defineTool(
 );
 
 
-const InventoryOptimizationSuggestionsInputSchema = z.object({});
+const InventoryOptimizationSuggestionsInputSchema = z.object({
+  organizationId: z.string().describe("The organization ID to analyze inventory for")
+});
 export type InventoryOptimizationSuggestionsInput = z.infer<typeof InventoryOptimizationSuggestionsInputSchema>;
 
 const InventoryOptimizationSuggestionsOutputSchema = z.object({
@@ -58,7 +62,7 @@ const prompt = ai.definePrompt({
   
   Your primary task is to analyze the company's inventory data to provide specific, actionable suggestions for adjustments and optimization strategies.
 
-  First, call the 'getLiveInventoryData' tool to fetch the most up-to-date inventory levels and recent movement history.
+  First, call the 'getLiveInventoryData' tool with the organization ID to fetch the most up-to-date inventory levels and recent movement history.
 
   Then, analyze the retrieved data. Consider factors such as:
   - Products with very high or very low stock levels.

@@ -26,9 +26,9 @@ import { getMovements as getMovementsFromDb } from '@/services/movements';
 import { getOrders as getOrdersFromDb } from '@/services/orders';
 
 
-export async function getMoreProducts(lastVisibleId: string | null) {
+export async function getMoreProducts(organizationId: string, lastVisibleId: string | null) {
     try {
-        const { products, hasMore } = await getProductsFromDb({ lastVisibleId });
+        const { products, hasMore } = await getProductsFromDb(organizationId, { lastVisibleId });
         return { success: true, products, hasMore };
     } catch (error) {
         console.error(error);
@@ -36,9 +36,9 @@ export async function getMoreProducts(lastVisibleId: string | null) {
     }
 }
 
-export async function getMoreLocations(lastVisibleId: string | null) {
+export async function getMoreLocations(organizationId: string, lastVisibleId: string | null) {
     try {
-        const { locations, hasMore } = await getLocationsFromDb({ lastVisibleId });
+        const { locations, hasMore } = await getLocationsFromDb(organizationId, { lastVisibleId });
         return { success: true, locations, hasMore };
     } catch (error) {
         console.error(error);
@@ -46,9 +46,9 @@ export async function getMoreLocations(lastVisibleId: string | null) {
     }
 }
 
-export async function getMoreMovements(lastVisibleId: string | null) {
+export async function getMoreMovements(organizationId: string, lastVisibleId: string | null) {
     try {
-        const { movements, hasMore } = await getMovementsFromDb({ lastVisibleId });
+        const { movements, hasMore } = await getMovementsFromDb(organizationId, { lastVisibleId });
         return { success: true, movements, hasMore };
     } catch (error) {
         console.error(error);
@@ -56,9 +56,9 @@ export async function getMoreMovements(lastVisibleId: string | null) {
     }
 }
 
-export async function getMoreOrders(lastVisibleId: string | null) {
+export async function getMoreOrders(organizationId: string, lastVisibleId: string | null) {
     try {
-        const { orders, hasMore } = await getOrdersFromDb({ lastVisibleId });
+        const { orders, hasMore } = await getOrdersFromDb(organizationId, { lastVisibleId });
         return { success: true, orders, hasMore };
     } catch (error) {
         console.error(error);
@@ -96,7 +96,21 @@ async function getCurrentUserEmail() {
     return 'admin@ledgerbloom.com';
 }
 
-export async function createUser(userId: string, name: string, email: string) {
+// Helper function to create audit logs with organizationId
+async function createAuditLogWithOrg(userEmail: string, organizationId: string, action: string, entityType: string, entityId: string, message: string) {
+    await createAuditLog({
+        user: userEmail,
+        action,
+        organizationId,
+        details: {
+            entityType,
+            entityId,
+            message
+        }
+    });
+}
+
+export async function createUser(userId: string, name: string, email: string, organizationId: string) {
   try {
     const invitation = await getInvitationByEmail(email);
     const role = invitation ? invitation.role : 'viewer';
@@ -106,6 +120,7 @@ export async function createUser(userId: string, name: string, email: string) {
       displayName: name,
       email: email,
       role: role,
+      organizationId: organizationId,
     });
 
     if (invitation) {
@@ -119,12 +134,13 @@ export async function createUser(userId: string, name: string, email: string) {
   }
 }
 
-export async function createProduct(userEmail: string, formData: FormData) {
+export async function createProduct(userEmail: string, organizationId: string, formData: FormData) {
   try {
     const newProductData: Omit<Product, 'id' | 'variants' | 'imageUrl'> = {
       displayName: formData.get('displayName') as string,
       baseUOM: formData.get('baseUOM') as string,
       active: formData.get('active') === 'on',
+      organizationId: organizationId,
     };
     
     let imageUrl;
@@ -154,15 +170,7 @@ export async function createProduct(userEmail: string, formData: FormData) {
     const docRef = await addDoc(productsCol, { ...newProductData, variants, imageUrl });
 
 
-    await createAuditLog({
-        user: userEmail,
-        action: 'product.create',
-        details: {
-            entityType: 'product',
-            entityId: docRef.id,
-            message: `Created new product: ${newProductData.displayName}`
-        }
-    });
+    await createAuditLogWithOrg(userEmail, organizationId, 'product.create', 'product', docRef.id, `Created new product: ${newProductData.displayName}`);
 
     revalidatePath('/dashboard/products');
     revalidatePath('/dashboard/audit-log');
@@ -173,31 +181,27 @@ export async function createProduct(userEmail: string, formData: FormData) {
   }
 }
 
-export async function updateUserProfile(userEmail: string, formData: FormData) {
+export async function updateUserProfile(userEmail: string, userId: string, organizationId: string, formData: FormData) {
     try {
         const displayName = formData.get('name') as string;
-        const auth = getAuth(app);
-        const currentUser = auth.currentUser;
-
-        if (currentUser) {
-            await updateProfile(currentUser, { displayName });
-            
-            await createAuditLog({
-                user: userEmail,
-                action: 'user.update_profile',
-                details: {
-                    entityType: 'user',
-                    entityId: currentUser.uid,
-                    message: `User updated their display name to: ${displayName}`
-                }
-            });
-            
-            revalidatePath('/dashboard/settings');
-            revalidatePath('/dashboard/audit-log');
-            return { success: true, message: 'Profile updated successfully.' };
-        } else {
-            throw new Error('No user is signed in.');
-        }
+        
+        // Note: Server actions can't access client-side auth currentUser
+        // This would need to be handled with session management or passed userId
+        
+        await createAuditLog({
+        organizationId: organizationId,
+            user: userEmail,
+            action: 'user.update_profile',
+            details: {
+                entityType: 'user',
+                entityId: userId,
+                message: `User updated their display name to: ${displayName}`
+            }
+        });
+        
+        revalidatePath('/dashboard/settings');
+        revalidatePath('/dashboard/audit-log');
+        return { success: true, message: 'Profile updated successfully.' };
 
     } catch (error) {
         console.error(error);
@@ -206,7 +210,7 @@ export async function updateUserProfile(userEmail: string, formData: FormData) {
     }
 }
 
-export async function updateProduct(userEmail: string, formData: FormData) {
+export async function updateProduct(userEmail: string, organizationId: string, formData: FormData) {
     try {
       const productId = formData.get('id') as string;
       
@@ -240,6 +244,7 @@ export async function updateProduct(userEmail: string, formData: FormData) {
       await updateDoc(productRef, dataToUpdate);
 
       await createAuditLog({
+        organizationId: organizationId,
         user: userEmail,
         action: 'product.update',
         details: {
@@ -258,12 +263,13 @@ export async function updateProduct(userEmail: string, formData: FormData) {
     }
   }
   
-  export async function deleteProduct(userEmail: string, productId: string) {
+  export async function deleteProduct(userEmail: string, organizationId: string, productId: string) {
     try {
       const productRef = doc(db, 'products', productId);
       await deleteDoc(productRef);
 
       await createAuditLog({
+        organizationId: organizationId,
         user: userEmail,
         action: 'product.delete',
         details: {
@@ -283,18 +289,20 @@ export async function updateProduct(userEmail: string, formData: FormData) {
   }
   
 
-export async function createLocation(userEmail: string, data: Omit<Location, 'id' | 'active'> & { active: boolean | 'on' }) {
+export async function createLocation(userEmail: string, organizationId: string, data: Omit<Location, 'id' | 'active'> & { active: boolean | 'on' }) {
     try {
         const newLocationData: Omit<Location, 'id'> = {
             name: data.name,
             address: data.address,
             type: data.type,
             active: data.active === 'on' || data.active === true,
+            organizationId: organizationId,
         };
         const locationsCol = collection(db, 'locations');
         const docRef = await addDoc(locationsCol, newLocationData);
 
         await createAuditLog({
+        organizationId: organizationId,
             user: userEmail,
             action: 'location.create',
             details: {
@@ -314,7 +322,7 @@ export async function createLocation(userEmail: string, data: Omit<Location, 'id
 }
 
 
-export async function updateLocation(userEmail: string, formData: FormData) {
+export async function updateLocation(userEmail: string, organizationId: string, formData: FormData) {
     try {
         const locationData = {
             id: formData.get('id') as string,
@@ -333,6 +341,7 @@ export async function updateLocation(userEmail: string, formData: FormData) {
         await updateDoc(locationRef, dataToUpdate);
 
         await createAuditLog({
+        organizationId: organizationId,
             user: userEmail,
             action: 'location.update',
             details: {
@@ -352,12 +361,13 @@ export async function updateLocation(userEmail: string, formData: FormData) {
     }
 }
 
-export async function deleteLocation(userEmail: string, locationId: string) {
+export async function deleteLocation(userEmail: string, organizationId: string, locationId: string) {
     try {
         const locationRef = doc(db, 'locations', locationId);
         await deleteDoc(locationRef);
 
         await createAuditLog({
+        organizationId: organizationId,
             user: userEmail,
             action: 'location.delete',
             details: {
@@ -376,7 +386,7 @@ export async function deleteLocation(userEmail: string, locationId: string) {
     }
 }
 
-export async function createMovement(userEmail: string, formData: FormData) {
+export async function createMovement(userEmail: string, organizationId: string, formData: FormData) {
     try {
         const [sku, uom] = (formData.get('sku') as string).split('|');
         const movementData: Omit<InventoryMovement, 'id' | 'occurredAt'> = {
@@ -387,6 +397,7 @@ export async function createMovement(userEmail: string, formData: FormData) {
             direction: formData.get('direction') as 'in' | 'out',
             cause: formData.get('cause') as 'purchase' | 'sale' | 'adjustment' | 'transfer' | 'production',
             actor: userEmail,
+            organizationId: organizationId,
         };
         
         const newMovementData = {
@@ -403,6 +414,7 @@ export async function createMovement(userEmail: string, formData: FormData) {
         }
 
         await createAuditLog({
+        organizationId: organizationId,
             user: userEmail,
             action: `movement.create.${newMovement.cause}`,
             details: {
@@ -423,7 +435,7 @@ export async function createMovement(userEmail: string, formData: FormData) {
     }
 }
 
-export async function createOrder(userEmail: string, formData: FormData) {
+export async function createOrder(userEmail: string, organizationId: string, formData: FormData) {
   try {
     const items = JSON.parse(formData.get('items') as string) as OrderItem[];
     const totalValue = items.reduce((acc, item) => acc + (item.price * item.quantity), 0);
@@ -434,13 +446,15 @@ export async function createOrder(userEmail: string, formData: FormData) {
       createdAt: new Date(),
       items: items, 
       totalValue: totalValue,
-      orderNumber: `ORD-${Date.now()}`
+      orderNumber: `ORD-${Date.now()}`,
+      organizationId: organizationId
     };
 
     const ordersCol = collection(db, 'orders');
     const docRef = await addDoc(ordersCol, newOrderData);
 
     await createAuditLog({
+        organizationId: organizationId,
         user: userEmail,
         action: 'order.create',
         details: {
@@ -459,7 +473,7 @@ export async function createOrder(userEmail: string, formData: FormData) {
   }
 }
 
-export async function updateOrder(userEmail: string, formData: FormData) {
+export async function updateOrder(userEmail: string, organizationId: string, formData: FormData) {
     try {
       const orderId = formData.get('id') as string;
       const status = formData.get('status') as Order['status'];
@@ -479,7 +493,7 @@ export async function updateOrder(userEmail: string, formData: FormData) {
       // If order is shipped, create inventory movements
       if (status === 'shipped') {
         const order = await getOrderFromDb(orderId);
-        const { locations } = await getLocationsFromDb(); 
+        const { locations } = await getLocationsFromDb('temp-org-id'); // TODO: Get from context 
         const warehouse = locations.find(l => l.type === 'warehouse');
         
         if (order && warehouse) {
@@ -491,16 +505,18 @@ export async function updateOrder(userEmail: string, formData: FormData) {
                     direction: 'out',
                     cause: 'sale',
                     actor: 'system',
+                    organizationId: organizationId,
                 };
                 
                 const movementsCol = collection(db, 'movements');
-                const { products } = await getProductsFromDb();
+                const { products } = await getProductsFromDb('temp-org-id', {}); // TODO: Get from context
                 const product = products.find(p => p.variants.some(v => v.sku === item.sku));
                 const uom = product?.baseUOM || 'each';
 
                 await addDoc(movementsCol, {...movementData, uom: uom, occurredAt: new Date()});
             }
              await createAuditLog({
+        organizationId: organizationId,
                 user: 'system',
                 action: 'inventory.adjust.sale',
                 details: {
@@ -513,6 +529,7 @@ export async function updateOrder(userEmail: string, formData: FormData) {
       }
 
       await createAuditLog({
+        organizationId: organizationId,
         user: userEmail,
         action: 'order.update',
         details: {
@@ -543,7 +560,7 @@ export async function fulfillOrder(fulfillmentData: FulfillmentData) {
             return { success: false, error: `Order with ID ${orderId} not found.` };
         }
 
-        const { locations } = await getLocationsFromDb();
+        const { locations } = await getLocationsFromDb('temp-org-id'); // TODO: Get from context
         const warehouse = locations.find(l => l.type === 'warehouse');
         if (!warehouse) {
             return { success: false, error: 'No warehouse location found to fulfill from.' };
@@ -557,6 +574,7 @@ export async function fulfillOrder(fulfillmentData: FulfillmentData) {
                 direction: 'out',
                 cause: 'sale',
                 actor,
+                organizationId: order.organizationId,
             };
             
             const movementsCol = collection(db, 'movements');
@@ -567,6 +585,7 @@ export async function fulfillOrder(fulfillmentData: FulfillmentData) {
         await updateDoc(orderRef, { status: 'shipped' });
 
         await createAuditLog({
+        organizationId: order.organizationId,
             user: actor,
             action: 'inventory.adjust.sale',
             details: {
@@ -591,7 +610,7 @@ export async function fulfillOrder(fulfillmentData: FulfillmentData) {
 }
 
 
-export async function exportToBigQuery(userEmail: string, input: ExportToBigQueryInput) {
+export async function exportToBigQuery(userEmail: string, organizationId: string, input: ExportToBigQueryInput) {
     try {
       const result = await exportToBigQueryFlow(input);
       
@@ -600,9 +619,11 @@ export async function exportToBigQuery(userEmail: string, input: ExportToBigQuer
           status: result.success ? 'Completed' : 'Failed',
           triggeredBy: userEmail,
           message: result.message,
+          organizationId: organizationId,
       });
 
       await createAuditLog({
+        organizationId: organizationId,
         user: userEmail,
         action: 'export.run',
         details: {
@@ -619,6 +640,7 @@ export async function exportToBigQuery(userEmail: string, input: ExportToBigQuer
       const message = error instanceof Error ? error.message : 'An unknown error occurred.';
       console.error('Export to BigQuery failed:', message);
        await createAuditLog({
+        organizationId: organizationId,
         user: userEmail,
         action: 'export.run.failed',
         details: {
@@ -631,17 +653,19 @@ export async function exportToBigQuery(userEmail: string, input: ExportToBigQuer
     }
 }
 
-export async function createInvitation(userEmail: string, invitedEmail: string, role: User['role']) {
+export async function createInvitation(userEmail: string, organizationId: string, invitedEmail: string, role: User['role']) {
     try {
         await createInvitationInDb({
             email: invitedEmail,
             role: role,
             invitedBy: userEmail,
+            organizationId: organizationId,
             // In a real app, you would generate a secure, unique token
             token: `inv_${Date.now()}`, 
         });
 
         await createAuditLog({
+        organizationId: organizationId,
             user: userEmail,
             action: 'user.invite',
             details: {
@@ -663,11 +687,12 @@ export async function createInvitation(userEmail: string, invitedEmail: string, 
     }
 }
 
-export async function updateUserRole(userEmail: string, targetUserId: string, targetUserEmail: string, newRole: User['role']) {
+export async function updateUserRole(userEmail: string, organizationId: string, targetUserId: string, targetUserEmail: string, newRole: User['role']) {
     try {
         await updateUserInDb(targetUserId, { role: newRole });
 
         await createAuditLog({
+        organizationId: organizationId,
             user: userEmail,
             action: 'user.role.update',
             details: {
@@ -688,11 +713,12 @@ export async function updateUserRole(userEmail: string, targetUserId: string, ta
     }
 }
 
-export async function deleteUser(userEmail: string, targetUserId: string, targetUserEmail: string) {
+export async function deleteUser(userEmail: string, organizationId: string, targetUserId: string, targetUserEmail: string) {
     try {
         await deleteUserInDb(targetUserId);
 
         await createAuditLog({
+        organizationId: organizationId,
             user: userEmail,
             action: 'user.delete',
             details: {

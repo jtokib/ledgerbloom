@@ -7,11 +7,13 @@ import { getProducts } from "@/services/products";
 import { getLocations } from "@/services/locations";
 import type { Product, Location } from "@/lib/types";
 import { Button } from "@/components/ui/button";
+import { getCurrentOrganizationId } from '@/lib/auth/middleware';
 
 export default async function InventoryPage() {
-  const inventoryLevels = await getInventoryLevels();
-  const { products } = await getProducts();
-  const { locations } = await getLocations();
+  const organizationId = await getCurrentOrganizationId();
+  const inventoryLevels = await getInventoryLevels(organizationId);
+  const { products } = await getProducts(organizationId);
+  const { locations } = await getLocations(organizationId);
 
   const getProduct = (sku: string) => {
     return products.find(p => p.variants.some(v => v.sku === sku));
