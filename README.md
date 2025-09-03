@@ -84,7 +84,7 @@ LedgerBloom is architected as a server-driven Next.js application.
     ```
 
 2.  **Configure Firebase:**
-    -   Copy your Firebase project's web configuration object into `src/lib/firebase.ts`.
+    -   Copy your Firebase project's web configuration object into `src/lib/firebase.ts`. **Note:** The API key will be loaded from an environment variable.
     -   Set up Application Default Credentials for the server-side Firebase Admin SDK. You can do this by running `gcloud auth application-default login` if you have the gcloud CLI installed.
 
 3.  **Install dependencies:**
@@ -93,13 +93,16 @@ LedgerBloom is architected as a server-driven Next.js application.
     ```
 
 4.  **Set up environment variables:**
-    Create a `.env.local` file in the root of the project. This file is for local development and should not be committed to version control. Add the following, replacing the value with a secure, randomly generated secret:
+    Create a `.env.local` file in the root of the project. This file is for local development and should not be committed to version control. Add the following keys:
     ```
-    # A secret key for securing the ShipStation webhook
-    SHIPSTATION_WEBHOOK_API_KEY=your_secret_api_key_here
+    # Your public Firebase project API key
+    NEXT_PUBLIC_FIREBASE_API_KEY=your_firebase_api_key_here
 
     # Your Google Cloud / Gemini API Key for Genkit
     GEMINI_API_KEY=your_gemini_api_key_here
+
+    # A secret key for securing the ShipStation webhook
+    SHIPSTATION_WEBHOOK_API_KEY=your_secret_api_key_here
     ```
 
 5.  **Run the development server:**

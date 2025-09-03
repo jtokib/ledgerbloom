@@ -6,7 +6,7 @@ const firebaseConfig = {
   "projectId": "ledgerbloom",
   "appId": "1:826516699519:web:123983de7b8f2d5a5c824a",
   "storageBucket": "ledgerbloom.firebasestorage.app",
-  "apiKey": "AIzaSyDcgty6AvlLVEiWYqxg59IQ8Mv2r9sz5Ok",
+  "apiKey": process.env.NEXT_PUBLIC_FIREBASE_API_KEY,
   "authDomain": "ledgerbloom.firebaseapp.com",
   "measurementId": "",
   "messagingSenderId": "826516699519"
