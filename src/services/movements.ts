@@ -2,8 +2,7 @@
 'use server';
 
 import type { InventoryMovement } from '@/lib/types';
-import { db } from '@/lib/firebase';
-import { collection, getDocs, query, orderBy, Timestamp, addDoc, limit, startAfter, getDoc, where, doc } from 'firebase/firestore';
+import { getDb } from '@/lib/firebase-admin';
 
 const MOVEMENTS_COLLECTION = 'movements';
 const DEFAULT_PAGE_SIZE = 20;
@@ -14,18 +13,19 @@ const DEFAULT_PAGE_SIZE = 20;
 export async function getMovements(organizationId: string, options: { lastVisibleId?: string | null, limit?: number } = {}): Promise<{ movements: InventoryMovement[], hasMore: boolean }> {
   const { lastVisibleId, limit: pageSize = DEFAULT_PAGE_SIZE } = options;
   
-  const movementsCol = collection(db, MOVEMENTS_COLLECTION);
+  const db = getDb();
+  const movementsCol = db.collection(MOVEMENTS_COLLECTION);
   // Order by date descending to get the most recent movements first
-  let q = query(movementsCol, where('organizationId', '==', organizationId), orderBy('occurredAt', 'desc'), limit(pageSize + 1));
+  let q = movementsCol.where('organizationId', '==', organizationId).orderBy('occurredAt', 'desc').limit(pageSize + 1);
 
   if (lastVisibleId) {
-    const lastVisibleDoc = await getDoc(doc(db, MOVEMENTS_COLLECTION, lastVisibleId));
-    if (lastVisibleDoc.exists()) {
-      q = query(movementsCol, where('organizationId', '==', organizationId), orderBy('occurredAt', 'desc'), startAfter(lastVisibleDoc), limit(pageSize + 1));
+    const lastVisibleDoc = await db.collection(MOVEMENTS_COLLECTION).doc(lastVisibleId).get();
+    if (lastVisibleDoc.exists) {
+      q = movementsCol.where('organizationId', '==', organizationId).orderBy('occurredAt', 'desc').startAfter(lastVisibleDoc).limit(pageSize + 1);
     }
   }
 
-  const movementsSnapshot = await getDocs(q);
+  const movementsSnapshot = await q.get();
 
   const hasMore = movementsSnapshot.docs.length > pageSize;
   const movementList = movementsSnapshot.docs.slice(0, pageSize).map(doc => {
@@ -34,7 +34,7 @@ export async function getMovements(organizationId: string, options: { lastVisibl
       id: doc.id,
       ...data,
       // Convert Firestore Timestamp to JavaScript Date
-      occurredAt: (data.occurredAt as Timestamp).toDate(),
+      occurredAt: data.occurredAt.toDate(),
     } as InventoryMovement;
   });
 
@@ -50,8 +50,9 @@ export async function createMovement(movementData: Omit<InventoryMovement, 'id' 
         occurredAt: new Date(),
     };
 
-    const movementsCol = collection(db, 'movements');
-    const docRef = await addDoc(movementsCol, newMovementData);
+    const db = getDb();
+    const movementsCol = db.collection('movements');
+    const docRef = await movementsCol.add(newMovementData);
 
     return {
         ...newMovementData,

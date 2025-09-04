@@ -3,21 +3,21 @@
 import type { ExportLog } from '@/lib/types';
 import { getInventoryLevels } from './inventory';
 import { getMovements } from './movements';
-import { db } from '@/lib/firebase';
-import { collection, getDocs, addDoc, query, orderBy, Timestamp } from 'firebase/firestore';
+import { getDb } from '@/lib/firebase-admin';
 
 
 export async function getExportLogs(): Promise<ExportLog[]> {
-    const logsCol = collection(db, 'export_logs');
-    const q = query(logsCol, orderBy('triggeredAt', 'desc'));
-    const logsSnapshot = await getDocs(q);
+    const db = getDb();
+    const logsCol = db.collection('export_logs');
+    const q = logsCol.orderBy('triggeredAt', 'desc');
+    const logsSnapshot = await q.get();
 
     const logList = logsSnapshot.docs.map(doc => {
         const data = doc.data();
         return { 
             id: doc.id, 
             ...data,
-            triggeredAt: (data.triggeredAt as Timestamp).toDate(),
+            triggeredAt: data.triggeredAt.toDate(),
         } as ExportLog
     });
 
@@ -38,8 +38,9 @@ export async function createExportLog(logData: Omit<ExportLog, 'id' | 'triggered
         }
     };
     
-    const logsCol = collection(db, 'export_logs');
-    const docRef = await addDoc(logsCol, newLogData);
+    const db = getDb();
+    const logsCol = db.collection('export_logs');
+    const docRef = await logsCol.add(newLogData);
     
     return {
         ...newLogData,

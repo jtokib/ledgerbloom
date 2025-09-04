@@ -9,6 +9,14 @@ const nextConfig: NextConfig = {
   eslint: {
     ignoreDuringBuilds: true,
   },
+  serverExternalPackages: ['firebase-admin'],
+  // Firebase Studio compatibility
+  allowedDevOrigins: [
+    'https://3000-firebase-studio-1756439439112.cluster-2xfkbshw5rfguuk5qupw267afs.cloudworkstations.dev',
+    'https://*.cloudworkstations.dev',
+    'https://*.firebaseapp.com',
+    'https://*.web.app',
+  ],
   images: {
     remotePatterns: [
       {

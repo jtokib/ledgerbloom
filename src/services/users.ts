@@ -2,16 +2,15 @@
 'use server';
 import type { User } from '@/lib/types';
 import { getDb } from '@/lib/firebase-admin';
-import { doc, setDoc, getDoc, collection, getDocs, query, updateDoc, deleteDoc } from 'firebase/firestore';
 
 /**
  * A service to create a user document in Firestore.
  */
 export async function createUser(userData: User): Promise<User> {
     const db = getDb();
-    const userRef = doc(db, 'users', userData.id);
-    // Use setDoc with merge: true to avoid overwriting existing data if any
-    await setDoc(userRef, {
+    const userRef = db.collection('users').doc(userData.id);
+    // Use set with merge: true to avoid overwriting existing data if any
+    await userRef.set({
         email: userData.email,
         displayName: userData.displayName,
         role: userData.role,
@@ -26,8 +25,8 @@ export async function createUser(userData: User): Promise<User> {
  */
 export async function updateUser(uid: string, data: Partial<User>): Promise<void> {
     const db = getDb();
-    const userRef = doc(db, 'users', uid);
-    await updateDoc(userRef, data);
+    const userRef = db.collection('users').doc(uid);
+    await userRef.update(data);
 }
 
 /**
@@ -36,8 +35,8 @@ export async function updateUser(uid: string, data: Partial<User>): Promise<void
  */
 export async function deleteUser(uid: string): Promise<void> {
     const db = getDb();
-    const userRef = doc(db, 'users', uid);
-    await deleteDoc(userRef);
+    const userRef = db.collection('users').doc(uid);
+    await userRef.delete();
 }
 
 
@@ -46,10 +45,10 @@ export async function deleteUser(uid: string): Promise<void> {
  */
 export async function getUser(uid: string): Promise<User | null> {
     const db = getDb();
-    const userRef = doc(db, 'users', uid);
-    const userSnap = await getDoc(userRef);
+    const userRef = db.collection('users').doc(uid);
+    const userSnap = await userRef.get();
 
-    if (userSnap.exists()) {
+    if (userSnap.exists) {
         return { id: uid, ...userSnap.data() } as User;
     } else {
         console.warn(`No user document found for UID: ${uid}`);
@@ -62,9 +61,8 @@ export async function getUser(uid: string): Promise<User | null> {
  */
 export async function getUsers(): Promise<User[]> {
     const db = getDb();
-    const usersCol = collection(db, 'users');
-    const q = query(usersCol);
-    const usersSnapshot = await getDocs(q);
+    const usersCol = db.collection('users');
+    const usersSnapshot = await usersCol.get();
 
     const userList = usersSnapshot.docs.map(doc => {
         const data = doc.data();

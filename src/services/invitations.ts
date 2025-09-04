@@ -1,8 +1,7 @@
 
 'use server';
 import type { Invitation } from '@/lib/types';
-import { db } from '@/lib/firebase';
-import { collection, addDoc, query, where, getDocs, limit, deleteDoc, doc } from 'firebase/firestore';
+import { getDb } from '@/lib/firebase-admin';
 
 const INVITATIONS_COLLECTION = 'invitations';
 
@@ -10,8 +9,9 @@ const INVITATIONS_COLLECTION = 'invitations';
  * A service to create an invitation document in Firestore.
  */
 export async function createInvitation(invitationData: Omit<Invitation, 'id' | 'createdAt'>): Promise<Invitation> {
-    const existingInvitationQuery = query(collection(db, INVITATIONS_COLLECTION), where('email', '==', invitationData.email));
-    const existingInvitationSnapshot = await getDocs(existingInvitationQuery);
+    const db = getDb();
+    const existingInvitationQuery = db.collection(INVITATIONS_COLLECTION).where('email', '==', invitationData.email);
+    const existingInvitationSnapshot = await existingInvitationQuery.get();
 
     if (!existingInvitationSnapshot.empty) {
         throw new Error(`An invitation for ${invitationData.email} already exists.`);
@@ -22,8 +22,8 @@ export async function createInvitation(invitationData: Omit<Invitation, 'id' | '
         createdAt: new Date(),
     };
 
-    const invitationsCol = collection(db, INVITATIONS_COLLECTION);
-    const docRef = await addDoc(invitationsCol, newInvitationData);
+    const invitationsCol = db.collection(INVITATIONS_COLLECTION);
+    const docRef = await invitationsCol.add(newInvitationData);
     
     return {
         ...newInvitationData,
@@ -35,8 +35,9 @@ export async function createInvitation(invitationData: Omit<Invitation, 'id' | '
  * A service to get an invitation by email from Firestore.
  */
 export async function getInvitationByEmail(email: string): Promise<Invitation | null> {
-    const q = query(collection(db, INVITATIONS_COLLECTION), where('email', '==', email), limit(1));
-    const querySnapshot = await getDocs(q);
+    const db = getDb();
+    const q = db.collection(INVITATIONS_COLLECTION).where('email', '==', email).limit(1);
+    const querySnapshot = await q.get();
 
     if (querySnapshot.empty) {
         return null;
@@ -50,8 +51,9 @@ export async function getInvitationByEmail(email: string): Promise<Invitation | 
  * A service to delete an invitation document from Firestore.
  */
 export async function deleteInvitation(id: string): Promise<void> {
-    const invitationRef = doc(db, INVITATIONS_COLLECTION, id);
-    await deleteDoc(invitationRef);
+    const db = getDb();
+    const invitationRef = db.collection(INVITATIONS_COLLECTION).doc(id);
+    await invitationRef.delete();
 }
     
 

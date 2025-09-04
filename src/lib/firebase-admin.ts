@@ -15,12 +15,33 @@ const firebaseConfig = {
 // Singleton pattern to ensure single initialization
 let app: admin.app.App;
 
+// Export app for use in other modules
+export { app };
+
 function getFirebaseAdminApp() {
   if (!app) {
     if (admin.apps.length === 0) {
+      // Try service account key first, fallback to application default
+      const serviceAccountKey = process.env.FIREBASE_SERVICE_ACCOUNT_KEY;
+      
+      let credential;
+      if (serviceAccountKey) {
+        try {
+          const serviceAccount = JSON.parse(serviceAccountKey);
+          credential = admin.credential.cert(serviceAccount);
+        } catch (error) {
+          console.warn('Invalid FIREBASE_SERVICE_ACCOUNT_KEY, using application default');
+          credential = admin.credential.applicationDefault();
+        }
+      } else {
+        // For development/Firebase Studio compatibility
+        credential = admin.credential.applicationDefault();
+      }
+
       admin.initializeApp({
-        credential: admin.credential.applicationDefault(),
-        databaseURL: `https://${firebaseConfig.projectId}.firebaseio.com`
+        credential,
+        projectId: firebaseConfig.projectId,
+        databaseURL: `https://${firebaseConfig.projectId}-default-rtdb.firebaseio.com`
       });
     }
     app = admin.apps[0]!;

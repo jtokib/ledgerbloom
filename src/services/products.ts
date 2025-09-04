@@ -1,8 +1,7 @@
 
 'use server';
 import type { Product } from '@/lib/types';
-import { db } from '@/lib/firebase';
-import { collection, getDocs, addDoc, doc, updateDoc, deleteDoc, query, orderBy, limit, startAfter, getDoc, where } from 'firebase/firestore';
+import { getDb } from '@/lib/firebase-admin';
 
 const PRODUCTS_COLLECTION = 'products';
 const DEFAULT_PAGE_SIZE = 10;
@@ -13,17 +12,18 @@ const DEFAULT_PAGE_SIZE = 10;
 export async function getProducts(organizationId: string, options: { lastVisibleId?: string | null, limit?: number } = {}): Promise<{ products: Product[], hasMore: boolean }> {
   const { lastVisibleId, limit: pageSize = DEFAULT_PAGE_SIZE } = options;
   
-  const productsCol = collection(db, PRODUCTS_COLLECTION);
-  let q = query(productsCol, where('organizationId', '==', organizationId), orderBy('displayName'), limit(pageSize + 1));
+  const db = getDb();
+  const productsCol = db.collection(PRODUCTS_COLLECTION);
+  let q = productsCol.where('organizationId', '==', organizationId).orderBy('displayName').limit(pageSize + 1);
 
   if (lastVisibleId) {
-    const lastVisibleDoc = await getDoc(doc(db, PRODUCTS_COLLECTION, lastVisibleId));
-    if (lastVisibleDoc.exists()) {
-        q = query(productsCol, where('organizationId', '==', organizationId), orderBy('displayName'), startAfter(lastVisibleDoc), limit(pageSize + 1));
+    const lastVisibleDoc = await db.collection(PRODUCTS_COLLECTION).doc(lastVisibleId).get();
+    if (lastVisibleDoc.exists) {
+        q = productsCol.where('organizationId', '==', organizationId).orderBy('displayName').startAfter(lastVisibleDoc).limit(pageSize + 1);
     }
   }
 
-  const productsSnapshot = await getDocs(q);
+  const productsSnapshot = await q.get();
   
   const hasMore = productsSnapshot.docs.length > pageSize;
   const productList = productsSnapshot.docs.slice(0, pageSize).map(doc => ({ id: doc.id, ...doc.data() } as Product));

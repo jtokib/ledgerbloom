@@ -11,7 +11,7 @@ import type { DecodedIdToken } from 'firebase-admin/auth';
  * The token is expected to be set by the Next.js middleware.
  */
 async function getIdTokenFromHeaders(): Promise<string | null> {
-  const headersList = headers();
+  const headersList = await headers();
   const authorization = headersList.get('Authorization');
   
   if (!authorization?.startsWith('Bearer ')) {
