@@ -43,15 +43,16 @@ export function MainSidebar() {
         <SidebarMenu>
           {menuItems.map((item) => (
             <SidebarMenuItem key={item.href}>
-              <Link href={item.href} asChild>
-                <SidebarMenuButton 
-                  isActive={item.href === '/' ? pathname === '/' : pathname.startsWith(item.href)} 
-                  tooltip={{children: item.label}}
-                >
+              <SidebarMenuButton 
+                asChild
+                isActive={item.href === '/' ? pathname === '/' : pathname.startsWith(item.href)} 
+                tooltip={{children: item.label}}
+              >
+                <Link href={item.href}>
                   <item.icon />
                   <span>{item.label}</span>
-                </SidebarMenuButton>
-              </Link>
+                </Link>
+              </SidebarMenuButton>
             </SidebarMenuItem>
           ))}
         </SidebarMenu>
@@ -59,15 +60,16 @@ export function MainSidebar() {
       <SidebarFooter className="border-t p-2">
         <SidebarMenu>
           <SidebarMenuItem>
-            <Link href="/settings" asChild>
-              <SidebarMenuButton 
-                isActive={pathname.startsWith('/settings')} 
-                tooltip={{children: "Settings"}}
-              >
+            <SidebarMenuButton 
+              asChild
+              isActive={pathname.startsWith('/settings')} 
+              tooltip={{children: "Settings"}}
+            >
+              <Link href="/settings">
                 <Settings />
                 <span>Settings</span>
-              </SidebarMenuButton>
-            </Link>
+              </Link>
+            </SidebarMenuButton>
           </SidebarMenuItem>
           <SidebarMenuItem>
             <SidebarMenuButton className="h-auto" tooltip={{children: 'Account actions'}}>
