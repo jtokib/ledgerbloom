@@ -43,16 +43,18 @@ export function MainSidebar() {
         <SidebarMenu>
           {menuItems.map((item) => (
             <SidebarMenuItem key={item.href}>
-              <SidebarMenuButton 
-                asChild
-                isActive={item.href === '/' ? pathname === '/' : pathname.startsWith(item.href)} 
-                tooltip={{children: item.label}}
-              >
-                <Link href={item.href}>
-                  <item.icon />
-                  <span>{item.label}</span>
-                </Link>
-              </SidebarMenuButton>
+              <Link href={item.href} legacyBehavior passHref>
+                <SidebarMenuButton 
+                  asChild
+                  isActive={item.href === '/' ? pathname === '/' : pathname.startsWith(item.href)} 
+                  tooltip={{children: item.label}}
+                >
+                  <a>
+                    <item.icon />
+                    <span>{item.label}</span>
+                  </a>
+                </SidebarMenuButton>
+              </Link>
             </SidebarMenuItem>
           ))}
         </SidebarMenu>
@@ -60,16 +62,18 @@ export function MainSidebar() {
       <SidebarFooter className="border-t p-2">
         <SidebarMenu>
           <SidebarMenuItem>
-            <SidebarMenuButton 
-              asChild
-              isActive={pathname.startsWith('/settings')} 
-              tooltip={{children: "Settings"}}
-            >
-              <Link href="/settings">
-                <Settings />
-                <span>Settings</span>
-              </Link>
-            </SidebarMenuButton>
+            <Link href="/settings" legacyBehavior passHref>
+                <SidebarMenuButton 
+                  asChild
+                  isActive={pathname.startsWith('/settings')} 
+                  tooltip={{children: "Settings"}}
+                >
+                  <a>
+                    <Settings />
+                    <span>Settings</span>
+                  </a>
+                </SidebarMenuButton>
+            </Link>
           </SidebarMenuItem>
           <SidebarMenuItem>
             <SidebarMenuButton className="h-auto" tooltip={{children: 'Account actions'}}>
